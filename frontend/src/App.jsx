@@ -9,6 +9,10 @@ import Patients from './pages/Patients';
 import Orders from './pages/Orders';
 import Tests from './pages/Tests';
 import TestSelection from './pages/TestSelection';
+import SampleAcceptance from './pages/SampleAcceptance';
+import Results from './pages/Results';
+import ResultPreview from './pages/ResultPreview';
+import TestParameters from './pages/TestParameters';
 import Layout from './components/Layout';
 
 const theme = createTheme({
@@ -43,7 +47,11 @@ function App() {
               <Route path="patients" element={<Patients />} />
               <Route path="patients/:patientId/test-selection" element={<TestSelection />} />
               <Route path="orders" element={<Orders />} />
+              <Route path="sample-acceptance" element={<SampleAcceptance />} />
+              <Route path="results/:orderId" element={<Results />} />
+              <Route path="results/:orderId/preview" element={<ResultPreview />} />
               <Route path="tests" element={<Tests />} />
+              <Route path="test-parameters" element={<TestParameters />} />
             </Route>
           </Routes>
         </Router>

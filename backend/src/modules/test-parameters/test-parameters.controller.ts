@@ -28,7 +28,7 @@ export class TestParametersController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.RECEPTION)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB)
   findAll() {
     return this.testParametersService.findAll();
   }

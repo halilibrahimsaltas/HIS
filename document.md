@@ -1,95 +1,105 @@
-Elbette! Sana Cursor Agent’ın anlayabileceği şekilde, LIMS (Laboratuvar Bilgi Yönetim Sistemi) geliştirmek için kullanılacak tam kapsamlı bir teknik dokümantasyon hazırlayacağım.
-Bu dokümantasyon, Cursor’a verdiğinde doğrudan projeyi kurmaya, dosyaları oluşturmaya ve sistemi geliştirmeye başlayabilir.
+# LIMS — Teknik Dokümantasyon
 
-Aşağıda TEMİZ, ADIM ADIM, KOD ODAKLI, MİMARİ NET bir dökümantasyon bulacaksın.
+Bu dokümantasyon, Cursor Agent'ın anlayabileceği şekilde, LIMS (Laboratuvar Bilgi Yönetim Sistemi) geliştirmek için kullanılacak tam kapsamlı bir teknik dokümantasyondur. Cursor'a verdiğinizde doğrudan projeyi kurmaya, dosyaları oluşturmaya ve sistemi geliştirmeye başlayabilir.
 
-📘 LIMS — Teknik Dokümantasyon (Cursor Agent İçin)
+## Proje Bilgileri
 
-Proje: Laboratuvar Bilgi Yönetim Sistemi
-Backend: Node.js (NestJS + TypeScript)
-Frontend: React + Vite + Material UI
-Database: PostgreSQL + Prisma
-Kimlik Yönetimi: JWT + RBAC
-Amaç:
+- **Proje Adı**: Laboratuvar Bilgi Yönetim Sistemi (LIMS)
+- **Backend**: Node.js (NestJS + TypeScript)
+- **Frontend**: React + Vite + Material UI
+- **Database**: PostgreSQL + Prisma
+- **Kimlik Yönetimi**: JWT + RBAC
+
+## Amaç
+
 İlk sürümde şu özellikler yapılacak:
 
-Resepsiyon:
+### Resepsiyon
+- Hasta kayıt oluşturma
+- Test seçimi
+- Fiyatlandırma
 
-Hasta kayıt oluşturma
+### Admin
+- Test içerik yönetimi (test ekleme, fiyat belirleme)
 
-Test seçimi
+### Roller
+- **ADMIN**: Tüm işlemlere erişim
+- **RECEPTION**: Hasta ve test istem yönetimi
+- **LAB**: Laborant (şimdilik boş)
 
-Fiyatlandırma
+**Not**: Mimarinin ileride cihaz entegrasyonuna (Cobas, Sysmex vb.) uygun olması gerekmektedir.
 
-Admin:
+---
 
-Test içerik yönetimi (test ekleme, fiyat belirleme)
+## 1. Proje Klasör Yapısı
 
-Roller:
-
-Admin
-
-Resepsiyon
-
-Laborant (şimdilik boş)
-
-Mimarinin ileride cihaz entegrasyonuna (Cobas, Sysmex vb.) uygun olması
-
-📂 1. Proje Klasör Yapısı
-
-Cursor agent'a birebir şu klasör yapısını oluşturmasını söyleyebilirsin:
-
+```
 lims-project/
- ├── backend/
- │    ├── src/
- │    │    ├── modules/
- │    │    │    ├── auth/
- │    │    │    ├── users/
- │    │    │    ├── patients/
- │    │    │    ├── tests/
- │    │    │    └── orders/
- │    │    ├── common/
- │    │    ├── config/
- │    │    └── main.ts
- │    ├── prisma/
- │    │    └── schema.prisma
- │    ├── package.json
- │    └── tsconfig.json
- │
- ├── frontend/
- │    ├── src/
- │    │    ├── components/
- │    │    ├── pages/
- │    │    ├── hooks/
- │    │    ├── context/
- │    │    └── App.jsx
- │    ├── index.html
- │    └── package.json
- │
- └── README.md
+├── backend/
+│   ├── src/
+│   │   ├── modules/
+│   │   │   ├── auth/
+│   │   │   ├── users/
+│   │   │   ├── patients/
+│   │   │   ├── tests/
+│   │   │   └── orders/
+│   │   ├── common/
+│   │   ├── config/
+│   │   └── main.ts
+│   ├── prisma/
+│   │   └── schema.prisma
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   ├── context/
+│   │   └── App.jsx
+│   ├── index.html
+│   └── package.json
+│
+└── README.md
+```
 
-⚙️ 2. Backend Kurulum Talimatı
+---
 
-Cursor'a şu işlemleri yaptır:
+## 2. Backend Kurulum Talimatı
 
-NestJS projesi oluştur
+### NestJS Projesi Oluşturma
+
+```powershell
 npm i -g @nestjs/cli
 nest new backend
+```
 
-Prisma kurulumu
+### Prisma Kurulumu
+
+```powershell
 cd backend
 npm install prisma --save-dev
 npm install @prisma/client
 npx prisma init
+```
 
-PostgreSQL bağlantısı (.env)
+### PostgreSQL Bağlantısı (.env)
+
+`.env` dosyasına şu değerleri ekleyin:
+
+```env
 DATABASE_URL="postgresql://postgres:password@localhost:5432/lims"
 JWT_SECRET="supersecretkey"
+```
 
-🗄️ 3. Veritabanı Tasarımı (Prisma Şeması)
+---
 
-Cursor’a prisma/schema.prisma dosyasını şöyle yazdır:
+## 3. Veritabanı Tasarımı (Prisma Şeması)
 
+`prisma/schema.prisma` dosyası:
+
+```prisma
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -147,21 +157,36 @@ enum Role {
   RECEPTION
   LAB
 }
+```
 
-🔐 4. Auth Modülü (JWT)
+---
 
-Cursor Agent’a şu yapıyı oluşturmasını söyle:
+## 4. Auth Modülü (JWT)
 
+### Dosya Yapısı
+
+```
 backend/src/modules/auth/
-   - auth.controller.ts
-   - auth.service.ts
-   - auth.module.ts
-   - jwt.strategy.ts
+├── auth.controller.ts
+├── auth.service.ts
+├── auth.module.ts
+└── jwt.strategy.ts
+```
 
-Gerekli paketler
-npm install @nestjs/jwt bcrypt
+### Gerekli Paketler
 
-Örnek JWT Strategy
+```powershell
+npm install @nestjs/jwt @nestjs/passport passport passport-jwt bcrypt
+npm install --save-dev @types/passport-jwt @types/bcrypt
+```
+
+### Örnek JWT Strategy
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
@@ -175,140 +200,205 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return { userId: payload.sub, role: payload.role };
   }
 }
+```
 
-👤 5. Kullanıcı (Admin / Resepsiyon / Lab) Modülü
+---
 
-Cursor’a admin için seed user eklet:
+## 5. Kullanıcı (Admin / Resepsiyon / Lab) Modülü
 
-npx prisma db seed
+### Seed Dosyası
 
+`prisma/seed.ts`:
 
-Seed dosyası:
-
+```typescript
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const password = await bcrypt.hash("admin123",10);
+  const password = await bcrypt.hash('admin123', 10);
 
   await prisma.user.create({
     data: {
-      name: "Admin",
-      email: "admin@lims.com",
+      name: 'Admin',
+      email: 'admin@lims.com',
       password,
-      role: "ADMIN",
-    }
+      role: 'ADMIN',
+    },
+  });
+
+  const receptionPassword = await bcrypt.hash('reception123', 10);
+  await prisma.user.create({
+    data: {
+      name: 'Resepsiyon',
+      email: 'reception@lims.com',
+      password: receptionPassword,
+      role: 'RECEPTION',
+    },
   });
 }
 
-main();
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+```
 
-🧪 6. Test Yönetimi Modülü
+### Seed Çalıştırma
 
-CRUD işlemleri:
+`package.json`'a seed script ekleyin:
 
-Test ekle
+```json
+{
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}
+```
 
-Test listesi
+Sonra çalıştırın:
 
-Test güncelle
+```powershell
+npx prisma db seed
+```
 
-Test sil
+---
 
-Cursor’a controller/service dosyaları oluşturmasını söyle.
+## 6. Test Yönetimi Modülü
 
-👨‍⚕️ 7. Hasta Modülü
+### CRUD İşlemleri
 
-API uçları:
+- ✅ Test ekle
+- ✅ Test listesi
+- ✅ Test güncelle
+- ✅ Test sil
 
-Method	Endpoint	Açıklama
-POST	/patients	Hasta oluştur
-GET	/patients	Hasta listesi
-GET	/patients/:id	Hasta detay
-PUT	/patients/:id	Güncelle
-DELETE	/patients/:id	Sil
-🧾 8. Order (Test İstem) Modülü
+Cursor'a controller/service dosyaları oluşturmasını söyleyin.
 
-Hasta için test seçip fiyatlandırma:
+---
 
-Method	Endpoint	Amaç
-POST	/orders	Test istemi oluştur
-GET	/orders/patient/:patientId	Bir hastanın tüm istemleri
-GET	/orders/:id	Detay
+## 7. Hasta Modülü
 
-Cursor agent’a OrderService içinde:
+### API Endpoints
 
-test IDs array
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| POST | `/patients` | Hasta oluştur |
+| GET | `/patients` | Hasta listesi |
+| GET | `/patients/:id` | Hasta detay |
+| PUT | `/patients/:id` | Güncelle |
+| DELETE | `/patients/:id` | Sil |
 
-total = sum(test.price)
+---
 
-hesaplama eklemesini söyle.
+## 8. Order (Test İstem) Modülü
 
-🎨 9. Frontend React Yapısı
+Hasta için test seçip fiyatlandırma işlemleri.
+
+### API Endpoints
+
+| Method | Endpoint | Amaç |
+|--------|----------|------|
+| POST | `/orders` | Test istemi oluştur |
+| GET | `/orders/patient/:patientId` | Bir hastanın tüm istemleri |
+| GET | `/orders/:id` | Detay |
+
+### OrderService İçinde Hesaplama
+
+Cursor agent'a `OrderService` içinde şu hesaplamayı eklemesini söyleyin:
+
+- Test IDs array alınır
+- `total = sum(test.price)` hesaplanır
+
+---
+
+## 9. Frontend React Yapısı
+
+### Klasör Yapısı
+
+```
 frontend/
-  src/
-    pages/
-      Login.jsx
-      Dashboard.jsx
-      Patients.jsx
-      Orders.jsx
-      Tests.jsx
-    components/
-      PatientForm.jsx
-      TestSelector.jsx
-      PriceSummary.jsx
-    context/AuthContext.jsx
-    api/axios.js
+└── src/
+    ├── pages/
+    │   ├── Login.jsx
+    │   ├── Dashboard.jsx
+    │   ├── Patients.jsx
+    │   ├── Orders.jsx
+    │   └── Tests.jsx
+    ├── components/
+    │   ├── PatientForm.jsx
+    │   ├── TestSelector.jsx
+    │   └── PriceSummary.jsx
+    ├── context/
+    │   └── AuthContext.jsx
+    └── api/
+        └── axios.js
+```
 
-Temel teknoloji:
-npm create vite@latest
-npm install @mui/material axios react-router-dom
+### Temel Teknoloji Kurulumu
 
-🔗 10. Backend – Frontend Entegrasyonu
+```powershell
+npm create vite@latest frontend -- --template react
+cd frontend
+npm install @mui/material @emotion/react @emotion/styled axios react-router-dom
+```
 
-React tarafında:
+---
 
-axios.defaults.baseURL = "http://localhost:3000/api";
+## 10. Backend – Frontend Entegrasyonu
 
+### Axios Yapılandırması
 
-Login → JWT → localStorage → header:
+`src/api/axios.js`:
 
-axios.interceptors.request.use(config => {
-  config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
+```javascript
+import axios from 'axios';
+
+axios.defaults.baseURL = 'http://localhost:3000/api';
+
+// Login → JWT → localStorage → header
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-🚀 11. Geliştirme Yol Haritası
-Aşama 1 – Temel Sistem (2–3 hafta)
+export default axios;
+```
 
-Rol bazlı login
+---
 
-Hasta kayıt
+## 11. Geliştirme Yol Haritası
 
-Test listesi + yönetimi
+### Aşama 1 – Temel Sistem (2–3 hafta)
 
-Test istem (Order)
+- ✅ Rol bazlı login
+- ✅ Hasta kayıt
+- ✅ Test listesi + yönetimi
+- ✅ Test istem (Order)
+- ✅ Fiyatlandırma
+- ✅ Dashboard
 
-Fiyatlandırma
+### Aşama 2 – Laborant (İleride)
 
-Dashboard
+- 🔄 Numune kabul
+- 🔄 Barkod
+- 🔄 Sonuç ekranı
 
-Aşama 2 – Laborant (İleride)
+### Aşama 3 – Cihaz Entegrasyonu
 
-Numune kabul
+- 🔄 ASTM
+- 🔄 HL7
+- 🔄 Serialport
+- 🔄 Queue mantığı
 
-Barkod
+---
 
-Sonuç ekranı
 
-Aşama 3 – Cihaz Entegrasyonu
-
-ASTM
-
-HL7
-
-Serialport
-
-Queue mantığı

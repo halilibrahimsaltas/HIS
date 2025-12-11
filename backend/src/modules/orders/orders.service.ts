@@ -87,6 +87,7 @@ export class OrdersService {
           },
         },
         patient: true,
+        acceptedByUser: true,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -129,11 +130,13 @@ export class OrdersService {
             parameters: {
               include: {
                 testParameter: true,
+                enteredByUser: true,
               },
             },
           },
         },
         patient: true,
+        acceptedByUser: true,
       },
     });
   }
@@ -212,6 +215,90 @@ export class OrdersService {
     });
 
     return order;
+  }
+
+  async acceptSample(orderId: number, userId: number) {
+    // Barkod oluştur
+    const barcode = `ORD-${orderId}-${Date.now()}`;
+
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        barcode,
+        sampleStatus: 'ACCEPTED',
+        acceptedAt: new Date(),
+        acceptedBy: userId,
+      },
+      include: {
+        tests: {
+          include: {
+            test: {
+              include: {
+                parameters: true,
+              },
+            },
+            parameters: {
+              include: {
+                testParameter: true,
+              },
+            },
+          },
+        },
+        patient: true,
+        acceptedByUser: true,
+      },
+    });
+  }
+
+  async updateSampleStatus(orderId: number, status: string) {
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        sampleStatus: status as any,
+      },
+      include: {
+        tests: {
+          include: {
+            test: {
+              include: {
+                parameters: true,
+              },
+            },
+            parameters: {
+              include: {
+                testParameter: true,
+              },
+            },
+          },
+        },
+        patient: true,
+      },
+    });
+  }
+
+  async findByBarcode(barcode: string) {
+    return this.prisma.order.findUnique({
+      where: { barcode },
+      include: {
+        tests: {
+          include: {
+            test: {
+              include: {
+                parameters: true,
+              },
+            },
+            parameters: {
+              include: {
+                testParameter: true,
+                enteredByUser: true,
+              },
+            },
+          },
+        },
+        patient: true,
+        acceptedByUser: true,
+      },
+    });
   }
 }
 

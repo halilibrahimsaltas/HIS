@@ -19,6 +19,9 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ScienceIcon from '@mui/icons-material/Science';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import DescriptionIcon from '@mui/icons-material/Description';
+import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../context/AuthContext';
 
@@ -28,7 +31,9 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Hastalar', icon: <PeopleIcon />, path: '/patients' },
   { text: 'Test İstemleri', icon: <AssignmentIcon />, path: '/orders' },
+  { text: 'Numune Kabul', icon: <InventoryIcon />, path: '/sample-acceptance', roles: ['ADMIN', 'LAB'] },
   { text: 'Testler', icon: <ScienceIcon />, path: '/tests' },
+  { text: 'Test Parametreleri', icon: <SettingsIcon />, path: '/test-parameters', roles: ['ADMIN'] },
 ];
 
 export default function Layout() {
@@ -55,20 +60,22 @@ export default function Layout() {
       </Toolbar>
       <Divider />
       <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => {
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+        {menuItems
+          .filter((item) => !item.roles || item.roles.includes(user?.role))
+          .map((item) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                selected={location.pathname === item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
       </List>
       <Divider />
       <List>

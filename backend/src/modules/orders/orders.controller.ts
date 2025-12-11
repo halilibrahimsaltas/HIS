@@ -3,9 +3,11 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Body,
   Param,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -44,9 +46,27 @@ export class OrdersController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.RECEPTION)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB)
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(+id);
+  }
+
+  @Post(':id/accept-sample')
+  @Roles(Role.ADMIN, Role.LAB)
+  acceptSample(@Param('id') id: string, @Request() req) {
+    return this.ordersService.acceptSample(+id, req.user.userId);
+  }
+
+  @Patch(':id/sample-status')
+  @Roles(Role.ADMIN, Role.LAB)
+  updateSampleStatus(@Param('id') id: string, @Body() body: { status: string }) {
+    return this.ordersService.updateSampleStatus(+id, body.status);
+  }
+
+  @Get('barcode/:barcode')
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB)
+  findByBarcode(@Param('barcode') barcode: string) {
+    return this.ordersService.findByBarcode(barcode);
   }
 }
 

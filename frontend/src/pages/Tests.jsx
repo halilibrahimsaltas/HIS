@@ -80,7 +80,7 @@ export default function Tests() {
 
   const fetchParameters = async () => {
     try {
-      const response = await api.get('/tests/parameters/all');
+      const response = await api.get('/test-parameters');
       setParameters(response.data);
     } catch (error) {
       console.error('Parametreler yüklenemedi:', error);

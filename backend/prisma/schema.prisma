@@ -8,13 +8,15 @@ generator client {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  role      Role
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                Int       @id @default(autoincrement())
+  name              String
+  email             String    @unique
+  password          String
+  role              Role
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  acceptedOrders    Order[]
+  enteredResults    OrderTestParameter[]
 }
 
 model Patient {
@@ -79,13 +81,26 @@ enum TestCategory {
 }
 
 model Order {
-  id        Int        @id @default(autoincrement())
-  patientId Int
-  tests     OrderTest[]
-  total     Float
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  patient   Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  id           Int           @id @default(autoincrement())
+  patientId    Int
+  tests        OrderTest[]
+  total        Float
+  barcode      String?       @unique
+  sampleStatus SampleStatus  @default(PENDING)
+  acceptedAt   DateTime?
+  acceptedBy   Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  acceptedByUser User?       @relation(fields: [acceptedBy], references: [id])
+}
+
+enum SampleStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
 }
 
 model OrderTest {
@@ -101,10 +116,22 @@ model OrderTestParameter {
   id              Int          @id @default(autoincrement())
   orderTestId     Int
   testParameterId Int
+  result          String?
+  status          ResultStatus @default(PENDING)
+  enteredAt       DateTime?
+  enteredBy       Int?
   orderTest       OrderTest    @relation(fields: [orderTestId], references: [id], onDelete: Cascade)
   testParameter   TestParameter @relation(fields: [testParameterId], references: [id], onDelete: Cascade)
+  enteredByUser   User?        @relation(fields: [enteredBy], references: [id])
 
   @@unique([orderTestId, testParameterId])
+}
+
+enum ResultStatus {
+  PENDING
+  ENTERED
+  VERIFIED
+  REJECTED
 }
 
 enum Role {

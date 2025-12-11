@@ -97,16 +97,34 @@ export default function Orders() {
                   {new Date(order.createdAt).toLocaleDateString('tr-TR')}
                 </TableCell>
                 <TableCell align="right">
-                  {(user?.role === 'ADMIN' || user?.role === 'RECEPTION') && (
-                    <IconButton
+                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                    <Button
                       size="small"
-                      onClick={() => handleEdit(order)}
-                      color="primary"
-                      title="Düzenle"
+                      variant="outlined"
+                      onClick={() => navigate(`/results/${order.id}/preview`)}
                     >
-                      <EditIcon />
-                    </IconButton>
-                  )}
+                      Rapor
+                    </Button>
+                    {(user?.role === 'ADMIN' || user?.role === 'RECEPTION') && (
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEdit(order)}
+                        color="primary"
+                        title="Düzenle"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    )}
+                    {(user?.role === 'ADMIN' || user?.role === 'LAB') && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => navigate(`/results/${order.id}`)}
+                      >
+                        Sonuç
+                      </Button>
+                    )}
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}
