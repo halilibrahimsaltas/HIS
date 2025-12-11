@@ -1,0 +1,115 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Patient {
+  id             Int       @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  fatherName     String
+  birthDate      DateTime
+  phone          String?
+  email          String?
+  address        String?
+  gender         String?
+  identityNumber String?
+  passportNumber String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  orders         Order[]
+}
+
+model Test {
+  id          Int              @id @default(autoincrement())
+  code        String           @unique
+  name        String
+  category    TestCategory
+  price       Float
+  sampleType  String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  orderTests  OrderTest[]
+  parameters  TestParameter[]
+}
+
+model TestParameter {
+  id                Int                  @id @default(autoincrement())
+  code              String               @unique
+  name              String
+  unit              String?
+  referenceRange    String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  tests             Test[]
+  orderTestParameters OrderTestParameter[]
+}
+
+enum TestCategory {
+  BIO
+  HEM
+  URI
+  HOR
+  COA
+  PCR
+  A1C
+  ESR
+  SER
+  IMM
+  MIC
+  VIT
+  TOX
+  KAN
+  KOA
+  OTHER
+}
+
+model Order {
+  id        Int        @id @default(autoincrement())
+  patientId Int
+  tests     OrderTest[]
+  total     Float
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  patient   Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model OrderTest {
+  id         Int                  @id @default(autoincrement())
+  orderId    Int
+  testId     Int
+  order      Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  test       Test                 @relation(fields: [testId], references: [id], onDelete: Cascade)
+  parameters OrderTestParameter[]
+}
+
+model OrderTestParameter {
+  id              Int          @id @default(autoincrement())
+  orderTestId     Int
+  testParameterId Int
+  orderTest       OrderTest    @relation(fields: [orderTestId], references: [id], onDelete: Cascade)
+  testParameter   TestParameter @relation(fields: [testParameterId], references: [id], onDelete: Cascade)
+
+  @@unique([orderTestId, testParameterId])
+}
+
+enum Role {
+  ADMIN
+  RECEPTION
+  LAB
+}
+
