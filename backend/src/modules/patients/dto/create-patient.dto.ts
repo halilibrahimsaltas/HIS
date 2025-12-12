@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsDateString, IsEmail } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsDateString, IsEmail, ValidateIf } from 'class-validator';
 
 export class CreatePatientDto {
   @IsString()
@@ -22,6 +22,7 @@ export class CreatePatientDto {
   phone?: string;
 
   @IsOptional()
+  @ValidateIf((o) => o.email && o.email.trim() !== '')
   @IsEmail({}, { message: 'Geçerli bir e-posta adresi giriniz' })
   email?: string;
 

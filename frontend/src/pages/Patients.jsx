@@ -147,6 +147,11 @@ export default function Patients() {
       const submitData = {
         ...formData,
         birthDate: formData.birthDate ? new Date(formData.birthDate).toISOString() : null,
+        email: formData.email && formData.email.trim() ? formData.email.trim() : undefined,
+        phone: formData.phone && formData.phone.trim() ? formData.phone.trim() : undefined,
+        address: formData.address && formData.address.trim() ? formData.address.trim() : undefined,
+        identityNumber: formData.identityNumber && formData.identityNumber.trim() ? formData.identityNumber.trim() : undefined,
+        passportNumber: formData.passportNumber && formData.passportNumber.trim() ? formData.passportNumber.trim() : undefined,
       };
       
       if (editing) {

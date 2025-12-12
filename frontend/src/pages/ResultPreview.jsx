@@ -264,15 +264,22 @@ export default function ResultPreview() {
                 <TableBody>
                   {orderTest.parameters.map((param) => {
                     const hasResult = param.result && param.result.trim();
-                    const refRange = referenceRanges[param.testParameterId]?.rangeText ||
-                      (referenceRanges[param.testParameterId]?.minValue !== null &&
-                        referenceRanges[param.testParameterId]?.maxValue !== null
-                        ? `${referenceRanges[param.testParameterId].minValue}-${referenceRanges[param.testParameterId].maxValue}`
-                        : referenceRanges[param.testParameterId]?.minValue !== null
-                        ? `>${referenceRanges[param.testParameterId].minValue}`
-                        : referenceRanges[param.testParameterId]?.maxValue !== null
-                        ? `<${referenceRanges[param.testParameterId].maxValue}`
-                        : param.testParameter.referenceRange);
+                    const refRangeObj = referenceRanges[param.testParameterId];
+                    let refRange = null;
+                    if (!refRangeObj) {
+                      refRange = param.testParameter.referenceRange;
+                    } else if (refRangeObj.rangeText) {
+                      refRange = refRangeObj.rangeText;
+                    } else if (refRangeObj.minValue !== null && refRangeObj.minValue !== undefined && 
+                               refRangeObj.maxValue !== null && refRangeObj.maxValue !== undefined) {
+                      refRange = `${refRangeObj.minValue}-${refRangeObj.maxValue}`;
+                    } else if (refRangeObj.minValue !== null && refRangeObj.minValue !== undefined) {
+                      refRange = `>${refRangeObj.minValue}`;
+                    } else if (refRangeObj.maxValue !== null && refRangeObj.maxValue !== undefined) {
+                      refRange = `<${refRangeObj.maxValue}`;
+                    } else {
+                      refRange = param.testParameter.referenceRange;
+                    }
                     const isNormal = hasResult && refRange
                       ? checkIfNormal(param.result, refRange)
                       : null;
@@ -299,7 +306,7 @@ export default function ResultPreview() {
                         <TableCell>{param.testParameter.unit || '-'}</TableCell>
                         <TableCell>
                           <Typography variant="body2">
-                            {param.testParameter.referenceRange || '-'}
+                            {refRange || '-'}
                           </Typography>
                         </TableCell>
                         <TableCell>

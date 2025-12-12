@@ -286,15 +286,26 @@ export default function Results() {
                           <TableCell>{param.testParameter.unit || '-'}</TableCell>
                           <TableCell>
                             <Typography variant="caption">
-                              {referenceRanges[param.testParameterId]?.rangeText ||
-                                (referenceRanges[param.testParameterId]?.minValue !== null &&
-                                  referenceRanges[param.testParameterId]?.maxValue !== null
-                                  ? `${referenceRanges[param.testParameterId].minValue} - ${referenceRanges[param.testParameterId].maxValue}`
-                                  : referenceRanges[param.testParameterId]?.minValue !== null
-                                  ? `> ${referenceRanges[param.testParameterId].minValue}`
-                                  : referenceRanges[param.testParameterId]?.maxValue !== null
-                                  ? `< ${referenceRanges[param.testParameterId].maxValue}`
-                                  : param.testParameter.referenceRange) || '-'}
+                              {(() => {
+                                const refRange = referenceRanges[param.testParameterId];
+                                if (!refRange) {
+                                  return param.testParameter.referenceRange || '-';
+                                }
+                                if (refRange.rangeText) {
+                                  return refRange.rangeText;
+                                }
+                                if (refRange.minValue !== null && refRange.minValue !== undefined && 
+                                    refRange.maxValue !== null && refRange.maxValue !== undefined) {
+                                  return `${refRange.minValue} - ${refRange.maxValue}`;
+                                }
+                                if (refRange.minValue !== null && refRange.minValue !== undefined) {
+                                  return `> ${refRange.minValue}`;
+                                }
+                                if (refRange.maxValue !== null && refRange.maxValue !== undefined) {
+                                  return `< ${refRange.maxValue}`;
+                                }
+                                return param.testParameter.referenceRange || '-';
+                              })()}
                             </Typography>
                           </TableCell>
                           <TableCell>
