@@ -36,7 +36,12 @@
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "serialport": "^12.0.0",
+    "@serialport/parser-readline": "^12.0.0",
+    "bull": "^4.12.0",
+    "@nestjs/bull": "^10.0.1",
+    "redis": "^4.6.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

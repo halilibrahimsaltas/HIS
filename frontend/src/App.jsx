@@ -13,6 +13,8 @@ import SampleAcceptance from './pages/SampleAcceptance';
 import Results from './pages/Results';
 import ResultPreview from './pages/ResultPreview';
 import TestParameters from './pages/TestParameters';
+import Devices from './pages/Devices';
+import DeviceQueue from './pages/DeviceQueue';
 import Layout from './components/Layout';
 
 const theme = createTheme({
@@ -55,6 +57,8 @@ function App() {
               <Route path="results/:orderId/preview" element={<ResultPreview />} />
               <Route path="tests" element={<Tests />} />
               <Route path="test-parameters" element={<TestParameters />} />
+              <Route path="devices" element={<Devices />} />
+              <Route path="devices/queue" element={<DeviceQueue />} />
             </Route>
           </Routes>
         </Router>

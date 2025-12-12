@@ -20,7 +20,7 @@ model User {
 }
 
 model Patient {
-  id             Int       @id @default(autoincrement())
+  id             Int                @id @default(autoincrement())
   firstName      String
   lastName       String
   fatherName     String
@@ -31,9 +31,10 @@ model Patient {
   gender         String?
   identityNumber String?
   passportNumber String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
   orders         Order[]
+  deviceResults  DeviceResultQueue[]
 }
 
 model Test {
@@ -60,6 +61,7 @@ model TestParameter {
   tests             Test[]
   orderTestParameters OrderTestParameter[]
   referenceRanges   ParameterReferenceRange[]
+  deviceMappings    DeviceTestMapping[]
 }
 
 model ParameterReferenceRange {
@@ -110,18 +112,19 @@ enum TestCategory {
 }
 
 model Order {
-  id           Int           @id @default(autoincrement())
+  id           Int                @id @default(autoincrement())
   patientId    Int
   tests        OrderTest[]
   total        Float
-  barcode      String?       @unique
-  sampleStatus SampleStatus  @default(PENDING)
+  barcode      String?            @unique
+  sampleStatus SampleStatus       @default(PENDING)
   acceptedAt   DateTime?
   acceptedBy   Int?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  acceptedByUser User?       @relation(fields: [acceptedBy], references: [id])
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  patient      Patient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  acceptedByUser User?            @relation(fields: [acceptedBy], references: [id])
+  deviceResults DeviceResultQueue[]
 }
 
 enum SampleStatus {
@@ -167,5 +170,84 @@ enum Role {
   ADMIN
   RECEPTION
   LAB
+}
+
+model Device {
+  id            Int                @id @default(autoincrement())
+  name          String
+  manufacturer  String              // Örn: "Roche", "Siemens"
+  model         String              // Örn: "Cobas 6000", "Cobas 8000"
+  serialNumber  String?             @unique
+  protocol      DeviceProtocol      @default(ASTM)
+  connectionType ConnectionType     @default(TCP_IP)
+  host          String?             // TCP/IP için IP adresi
+  port          Int?                // TCP/IP için port
+  serialPort    String?             // Serial port için port adı (COM1, /dev/ttyUSB0)
+  baudRate      Int?                // Serial port için baud rate
+  isActive      Boolean             @default(false)
+  lastConnected DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  results       DeviceResultQueue[]
+  mappings      DeviceTestMapping[]
+}
+
+enum DeviceProtocol {
+  ASTM
+  HL7
+  CUSTOM
+}
+
+enum ConnectionType {
+  TCP_IP
+  SERIAL
+  FILE
+}
+
+model DeviceTestMapping {
+  id              Int      @id @default(autoincrement())
+  deviceId        Int
+  deviceTestCode  String   // Cihazın kullandığı test kodu
+  testParameterId Int      // LIMS'deki test parametresi
+  device          Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  testParameter   TestParameter @relation(fields: [testParameterId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceId, deviceTestCode])
+  @@index([deviceId])
+  @@index([testParameterId])
+}
+
+model DeviceResultQueue {
+  id              Int              @id @default(autoincrement())
+  deviceId        Int
+  rawMessage      String           // Ham cihaz mesajı
+  parsedData      Json?            // Parse edilmiş veri
+  patientId       Int?             // Eğer hasta eşleştirilebildiyse
+  orderId         Int?             // Eğer order eşleştirilebildiyse
+  barcode         String?          // Barkod numarası
+  testCode        String?          // Cihaz test kodu (parse edildikten sonra doldurulur)
+  result          String?          // Sonuç değeri
+  unit            String?          // Birim
+  status          QueueStatus      @default(PENDING)
+  errorMessage    String?          // Hata mesajı
+  processedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  device          Device           @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  patient         Patient?         @relation(fields: [patientId], references: [id])
+  order           Order?           @relation(fields: [orderId], references: [id])
+
+  @@index([deviceId])
+  @@index([status])
+  @@index([barcode])
+  @@index([createdAt])
+}
+
+enum QueueStatus {
+  PENDING       // İşlenmeyi bekliyor
+  PROCESSING    // İşleniyor
+  PROCESSED     // İşlendi ve sonuç yazıldı
+  ERROR         // Hata oluştu
+  MANUAL_REVIEW // Manuel inceleme gerekiyor
 }
 

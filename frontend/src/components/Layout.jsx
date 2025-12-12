@@ -22,6 +22,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import DescriptionIcon from '@mui/icons-material/Description';
 import SettingsIcon from '@mui/icons-material/Settings';
+import DevicesIcon from '@mui/icons-material/Devices';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,6 +35,7 @@ const menuItems = [
   { text: 'Numune Kabul', icon: <InventoryIcon />, path: '/sample-acceptance', roles: ['ADMIN', 'LAB'] },
   { text: 'Testler', icon: <ScienceIcon />, path: '/tests' },
   { text: 'Test Parametreleri', icon: <SettingsIcon />, path: '/test-parameters', roles: ['ADMIN'] },
+  { text: 'Cihazlar', icon: <DevicesIcon />, path: '/devices', roles: ['ADMIN', 'LAB'] },
 ];
 
 export default function Layout() {
