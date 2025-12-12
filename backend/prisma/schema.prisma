@@ -50,15 +50,44 @@ model Test {
 }
 
 model TestParameter {
-  id                Int                  @id @default(autoincrement())
-  code              String               @unique
+  id                Int                        @id @default(autoincrement())
+  code              String                     @unique
   name              String
   unit              String?
-  referenceRange    String?
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  referenceRange    String?                    // Genel referans aralığı (geriye dönük uyumluluk için)
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
   tests             Test[]
   orderTestParameters OrderTestParameter[]
+  referenceRanges   ParameterReferenceRange[]
+}
+
+model ParameterReferenceRange {
+  id              Int            @id @default(autoincrement())
+  testParameterId Int
+  ageGroup        AgeGroup
+  gender          Gender
+  rangeText       String?         // Metin formatında aralık (örn: "70-100", "<200", "Negatif")
+  minValue        Float?          // Minimum sayısal değer
+  maxValue        Float?          // Maksimum sayısal değer
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  testParameter   TestParameter   @relation(fields: [testParameterId], references: [id], onDelete: Cascade)
+
+  @@unique([testParameterId, ageGroup, gender])
+  @@index([testParameterId])
+}
+
+enum AgeGroup {
+  CHILD      // 0-18 yaş
+  ADULT      // 18-65 yaş
+  ELDERLY    // 65+ yaş
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  BOTH       // Her iki cinsiyet için de aynı
 }
 
 enum TestCategory {

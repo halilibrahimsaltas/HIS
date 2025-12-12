@@ -388,9 +388,9 @@ export default axios;
 
 ### Aşama 2 – Laborant (İleride)
 
-- 🔄 Numune kabul
-- 🔄 Barkod
-- 🔄 Sonuç ekranı
+- ✅ Numune kabul
+- ✅ Barkod
+- ✅ Sonuç ekranı
 
 ### Aşama 3 – Cihaz Entegrasyonu
 

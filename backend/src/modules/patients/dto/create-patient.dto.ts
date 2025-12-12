@@ -29,9 +29,9 @@ export class CreatePatientDto {
   @IsString()
   address?: string;
 
-  @IsOptional()
   @IsString()
-  gender?: string;
+  @IsNotEmpty({ message: 'Cinsiyet zorunludur' })
+  gender: string;
 
   @IsOptional()
   @IsString()

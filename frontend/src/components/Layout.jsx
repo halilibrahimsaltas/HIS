@@ -110,7 +110,8 @@ export default function Layout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Box sx={{ flexGrow: 1 }} />
+          <Typography variant="h6" noWrap component="div">
             {user?.name} ({user?.role})
           </Typography>
         </Toolbar>

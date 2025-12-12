@@ -18,7 +18,10 @@ import Layout from './components/Layout';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#F57C00', // Koyu sarı (Amber 700)
+      light: '#FFB74D', // Açık sarı
+      dark: '#E65100', // Daha koyu sarı
+      contrastText: '#fff',
     },
     secondary: {
       main: '#dc004e',

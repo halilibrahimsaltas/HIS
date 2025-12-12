@@ -47,12 +47,38 @@ export default function Results() {
   const [order, setOrder] = useState(null);
   const [results, setResults] = useState({}); // { parameterId: result }
   const [loading, setLoading] = useState(true);
+  const [referenceRanges, setReferenceRanges] = useState({}); // { parameterId: range }
 
   useEffect(() => {
     if (orderId) {
       fetchOrder();
     }
   }, [orderId]);
+
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const fetchReferenceRange = async (parameterId, age, gender) => {
+    try {
+      const response = await api.get(`/test-parameters/${parameterId}/reference-range?age=${age}&gender=${gender}`);
+      if (response.data) {
+        setReferenceRanges((prev) => ({
+          ...prev,
+          [parameterId]: response.data,
+        }));
+      }
+    } catch (error) {
+      // Referans aralığı bulunamazsa sessizce devam et
+    }
+  };
 
   const fetchOrder = async () => {
     try {
@@ -69,6 +95,18 @@ export default function Results() {
         });
       });
       setResults(initialResults);
+
+      // Referans aralıklarını yükle
+      if (response.data.patient) {
+        const age = calculateAge(response.data.patient.birthDate);
+        const gender = response.data.patient.gender;
+        response.data.tests.forEach((orderTest) => {
+          orderTest.parameters.forEach((param) => {
+            fetchReferenceRange(param.testParameterId, age, gender);
+          });
+        });
+      }
+
       setLoading(false);
     } catch (error) {
       console.error('Test istemi yüklenemedi:', error);
@@ -248,7 +286,15 @@ export default function Results() {
                           <TableCell>{param.testParameter.unit || '-'}</TableCell>
                           <TableCell>
                             <Typography variant="caption">
-                              {param.testParameter.referenceRange || '-'}
+                              {referenceRanges[param.testParameterId]?.rangeText ||
+                                (referenceRanges[param.testParameterId]?.minValue !== null &&
+                                  referenceRanges[param.testParameterId]?.maxValue !== null
+                                  ? `${referenceRanges[param.testParameterId].minValue} - ${referenceRanges[param.testParameterId].maxValue}`
+                                  : referenceRanges[param.testParameterId]?.minValue !== null
+                                  ? `> ${referenceRanges[param.testParameterId].minValue}`
+                                  : referenceRanges[param.testParameterId]?.maxValue !== null
+                                  ? `< ${referenceRanges[param.testParameterId].maxValue}`
+                                  : param.testParameter.referenceRange) || '-'}
                             </Typography>
                           </TableCell>
                           <TableCell>

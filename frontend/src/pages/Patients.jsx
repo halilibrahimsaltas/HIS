@@ -131,6 +131,9 @@ export default function Patients() {
     if (!formData.birthDate) {
       newErrors.birthDate = 'Doğum tarihi zorunludur';
     }
+    if (!formData.gender) {
+      newErrors.gender = 'Cinsiyet zorunludur';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -323,17 +326,18 @@ export default function Patients() {
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth margin="dense">
-                <InputLabel>Cinsiyet</InputLabel>
+              <FormControl fullWidth margin="dense" required error={!!errors.gender}>
+                <InputLabel>Cinsiyet *</InputLabel>
                 <Select
                   value={formData.gender}
-                  label="Cinsiyet"
+                  label="Cinsiyet *"
                   onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                 >
                   <MenuItem value="">Seçiniz</MenuItem>
                   <MenuItem value="MALE">Erkek</MenuItem>
                   <MenuItem value="FEMALE">Kadın</MenuItem>
                 </Select>
+                {errors.gender && <FormHelperText error>{errors.gender}</FormHelperText>}
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -366,11 +370,12 @@ export default function Patients() {
             <Grid item xs={12} sm={6}>
               <TextField
                 margin="dense"
-                label="E-posta"
+                label="E-posta (Opsiyonel)"
                 type="email"
                 fullWidth
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                helperText="E-posta adresi opsiyoneldir"
               />
             </Grid>
             <Grid item xs={12}>
