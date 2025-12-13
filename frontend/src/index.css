@@ -14,3 +14,13 @@ body {
   min-height: 100vh;
 }
 
+/* Yazdırma sırasında gizlenecek elementler */
+@media print {
+  .no-print,
+  .print-button,
+  button.no-print,
+  button.print-button {
+    display: none !important;
+  }
+}
+

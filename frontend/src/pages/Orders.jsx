@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import PrintIcon from '@mui/icons-material/Print';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
@@ -107,7 +108,20 @@ export default function Orders() {
                   {new Date(order.createdAt).toLocaleDateString('tr-TR')}
                 </TableCell>
                 <TableCell align="right">
-                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    {/* Barkod yazdırma butonu - sadece barkod varsa göster */}
+                    {order.tests.some((ot) => ot.barcode) && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<PrintIcon />}
+                        onClick={() => navigate(`/orders/${order.id}/barcodes`)}
+                        title="Barkod Yazdır"
+                      >
+                        Barkod
+                      </Button>
+                    )}
                     <Button
                       size="small"
                       variant="outlined"

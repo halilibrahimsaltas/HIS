@@ -24,6 +24,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import PrintIcon from '@mui/icons-material/Print';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
@@ -312,7 +313,7 @@ export default function SampleAcceptance() {
               </Box>
 
               {/* İşlem Butonları */}
-              <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+              <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 {selectedOrder.sampleStatus === 'PENDING' && (
                   <Button
                     variant="contained"
@@ -339,6 +340,17 @@ export default function SampleAcceptance() {
                     onClick={() => navigate(`/results/${selectedOrder.id}`)}
                   >
                     Sonuç Gir
+                  </Button>
+                )}
+                {/* Barkod yazdırma butonu - sadece barkod varsa göster */}
+                {selectedOrder.tests.some((ot) => ot.barcode) && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<PrintIcon />}
+                    onClick={() => navigate(`/orders/${selectedOrder.id}/barcodes`)}
+                  >
+                    Barkod Yazdır
                   </Button>
                 )}
                 <Button

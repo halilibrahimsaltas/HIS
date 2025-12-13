@@ -15,6 +15,7 @@ import ResultPreview from './pages/ResultPreview';
 import TestParameters from './pages/TestParameters';
 import Devices from './pages/Devices';
 import DeviceQueue from './pages/DeviceQueue';
+import BarcodePrint from './pages/BarcodePrint';
 import Layout from './components/Layout';
 
 const theme = createTheme({
@@ -59,6 +60,7 @@ function App() {
               <Route path="test-parameters" element={<TestParameters />} />
               <Route path="devices" element={<Devices />} />
               <Route path="devices/queue" element={<DeviceQueue />} />
+              <Route path="orders/:orderId/barcodes" element={<BarcodePrint />} />
             </Route>
           </Routes>
         </Router>
