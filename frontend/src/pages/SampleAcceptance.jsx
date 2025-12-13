@@ -70,8 +70,22 @@ export default function SampleAcceptance() {
     if (!searchBarcode.trim()) return;
 
     try {
+      // Önce OrderTest bazında ara
+      try {
+        const orderTestResponse = await api.get(`/orders/order-test/barcode/${searchBarcode}`);
+        if (orderTestResponse.data) {
+          setSelectedOrder(orderTestResponse.data.order);
+          return;
+        }
+      } catch (err) {
+        // OrderTest'te bulunamazsa Order'da ara
+      }
+
+      // Order bazında ara
       const response = await api.get(`/orders/barcode/${searchBarcode}`);
-      if (response.data) {
+      if (response.data && response.data.order) {
+        setSelectedOrder(response.data.order);
+      } else if (response.data) {
         setSelectedOrder(response.data);
       } else {
         alert('Barkod bulunamadı');
@@ -256,12 +270,25 @@ export default function SampleAcceptance() {
                 {selectedOrder.tests.map((orderTest) => (
                   <Card key={orderTest.id} variant="outlined" sx={{ mb: 1 }}>
                     <CardContent>
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {orderTest.test.name} ({orderTest.test.code})
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {orderTest.test.sampleType}
-                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 1 }}>
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            {orderTest.test.name} ({orderTest.test.code})
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {orderTest.test.sampleType}
+                          </Typography>
+                        </Box>
+                        {orderTest.barcode && (
+                          <Chip
+                            label={`Barkod: ${orderTest.barcode}`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontSize: '0.7rem' }}
+                          />
+                        )}
+                      </Box>
                       {orderTest.parameters && orderTest.parameters.length > 0 && (
                         <Box sx={{ mt: 1 }}>
                           <Typography variant="caption" color="text.secondary">

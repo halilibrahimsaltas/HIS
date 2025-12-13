@@ -81,14 +81,24 @@ export default function Orders() {
                   {order.patient.firstName} {order.patient.lastName}
                 </TableCell>
                 <TableCell>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                     {order.tests.map((ot) => (
-                      <Chip
-                        key={ot.id}
-                        label={`${ot.test.name} (${ot.parameters?.length || 0} param)`}
-                        size="small"
-                        variant="outlined"
-                      />
+                      <Box key={ot.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Chip
+                          label={`${ot.test.name} (${ot.parameters?.length || 0} param)`}
+                          size="small"
+                          variant="outlined"
+                        />
+                        {ot.barcode && (
+                          <Chip
+                            label={`Barkod: ${ot.barcode}`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontSize: '0.7rem' }}
+                          />
+                        )}
+                      </Box>
                     ))}
                   </Box>
                 </TableCell>

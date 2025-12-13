@@ -139,9 +139,11 @@ model OrderTest {
   id         Int                  @id @default(autoincrement())
   orderId    Int
   testId     Int
+  barcode    String?              @unique
   order      Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
   test       Test                 @relation(fields: [testId], references: [id], onDelete: Cascade)
   parameters OrderTestParameter[]
+  deviceResults DeviceResultQueue[]
 }
 
 model OrderTestParameter {
@@ -224,6 +226,7 @@ model DeviceResultQueue {
   parsedData      Json?            // Parse edilmiş veri
   patientId       Int?             // Eğer hasta eşleştirilebildiyse
   orderId         Int?             // Eğer order eşleştirilebildiyse
+  orderTestId     Int?             // Eğer orderTest eşleştirilebildiyse
   barcode         String?          // Barkod numarası
   testCode        String?          // Cihaz test kodu (parse edildikten sonra doldurulur)
   result          String?          // Sonuç değeri
@@ -236,10 +239,12 @@ model DeviceResultQueue {
   device          Device           @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   patient         Patient?         @relation(fields: [patientId], references: [id])
   order           Order?           @relation(fields: [orderId], references: [id])
+  orderTest       OrderTest?       @relation(fields: [orderTestId], references: [id])
 
   @@index([deviceId])
   @@index([status])
   @@index([barcode])
+  @@index([orderTestId])
   @@index([createdAt])
 }
 

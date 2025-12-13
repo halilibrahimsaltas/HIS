@@ -6,6 +6,12 @@ import { CreateOrderDto } from './dto/create-order.dto';
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
 
+  private generateBarcode(orderId: number, testId: number, index: number): string {
+    // Format: OT-{orderId}-{testId}-{timestamp}-{index}
+    const timestamp = Date.now().toString().slice(-8);
+    return `OT-${orderId}-${testId}-${timestamp}-${index}`;
+  }
+
   async create(createOrderDto: CreateOrderDto) {
     const { patientId, tests } = createOrderDto;
 
@@ -23,30 +29,56 @@ export class OrdersService {
     // Toplam fiyatı hesapla
     const total = testData.reduce((sum, test) => sum + test.price, 0);
 
-    // Order ve OrderTest kayıtlarını oluştur
+    // Order oluştur
     const order = await this.prisma.order.create({
       data: {
         patientId,
         total,
-        tests: {
-          create: tests.map((testSelection) => {
-            const test = testData.find((t) => t.id === testSelection.testId);
-            const parameterIds = testSelection.parameterIds || 
-              (test?.parameters ? test.parameters.map((p) => p.id) : []);
-
-            return {
-              testId: testSelection.testId,
-              parameters: parameterIds.length > 0
-                ? {
-                    create: parameterIds.map((paramId) => ({
-                      testParameterId: paramId,
-                    })),
-                  }
-                : undefined,
-            };
-          }),
-        },
       },
+    });
+
+    // OrderTest kayıtlarını oluştur ve barkod ata
+    const orderTests = await Promise.all(
+      tests.map(async (testSelection, index) => {
+        const test = testData.find((t) => t.id === testSelection.testId);
+        const parameterIds = testSelection.parameterIds || 
+          (test?.parameters ? test.parameters.map((p) => p.id) : []);
+
+        // Önce OrderTest'i oluştur
+        const orderTest = await this.prisma.orderTest.create({
+          data: {
+            orderId: order.id,
+            testId: testSelection.testId,
+            barcode: this.generateBarcode(order.id, testSelection.testId, index),
+            parameters: parameterIds.length > 0
+              ? {
+                  create: parameterIds.map((paramId) => ({
+                    testParameterId: paramId,
+                  })),
+                }
+              : undefined,
+          },
+          include: {
+            test: {
+              include: {
+                parameters: true,
+              },
+            },
+            parameters: {
+              include: {
+                testParameter: true,
+              },
+            },
+          },
+        });
+
+        return orderTest;
+      })
+    );
+
+    // Order'ı tekrar al ve testleri dahil et
+    return this.prisma.order.findUnique({
+      where: { id: order.id },
       include: {
         tests: {
           include: {
@@ -65,8 +97,6 @@ export class OrdersService {
         patient: true,
       },
     });
-
-    return order;
   }
 
   async findAll() {
@@ -171,30 +201,41 @@ export class OrdersService {
     const total = testData.reduce((sum, test) => sum + test.price, 0);
 
     // Order'ı güncelle
-    const order = await this.prisma.order.update({
+    await this.prisma.order.update({
       where: { id },
       data: {
         patientId,
         total,
-        tests: {
-          create: tests.map((testSelection) => {
-            const test = testData.find((t) => t.id === testSelection.testId);
-            const parameterIds = testSelection.parameterIds || 
-              (test?.parameters ? test.parameters.map((p) => p.id) : []);
+      },
+    });
 
-            return {
-              testId: testSelection.testId,
-              parameters: parameterIds.length > 0
-                ? {
-                    create: parameterIds.map((paramId) => ({
+    // OrderTest kayıtlarını oluştur ve barkod ata
+    await Promise.all(
+      tests.map(async (testSelection, index) => {
+        const test = testData.find((t) => t.id === testSelection.testId);
+        const parameterIds = testSelection.parameterIds || 
+          (test?.parameters ? test.parameters.map((p) => p.id) : []);
+
+        await this.prisma.orderTest.create({
+          data: {
+            orderId: id,
+            testId: testSelection.testId,
+            barcode: this.generateBarcode(id, testSelection.testId, index),
+            parameters: parameterIds.length > 0
+              ? {
+                  create: parameterIds.map((paramId) => ({
                       testParameterId: paramId,
                     })),
                   }
-                : undefined,
-            };
-          }),
-        },
-      },
+              : undefined,
+          },
+        });
+      })
+    );
+
+    // Order'ı tekrar al ve testleri dahil et
+    return this.prisma.order.findUnique({
+      where: { id },
       include: {
         tests: {
           include: {
@@ -213,18 +254,47 @@ export class OrdersService {
         patient: true,
       },
     });
-
-    return order;
   }
 
   async acceptSample(orderId: number, userId: number) {
-    // Barkod oluştur
-    const barcode = `ORD-${orderId}-${Date.now()}`;
+    // Order'ı al ve testlerini kontrol et
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        tests: {
+          include: {
+            test: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error('Order bulunamadı');
+    }
+
+    // Eğer OrderTest'lerde barkod yoksa oluştur
+    const orderTestsWithoutBarcode = order.tests.filter((ot) => !ot.barcode);
+    if (orderTestsWithoutBarcode.length > 0) {
+      await Promise.all(
+        orderTestsWithoutBarcode.map(async (orderTest, index) => {
+          await this.prisma.orderTest.update({
+            where: { id: orderTest.id },
+            data: {
+              barcode: this.generateBarcode(orderId, orderTest.testId, index),
+            },
+          });
+        })
+      );
+    }
+
+    // Order için de barkod oluştur (geriye dönük uyumluluk için)
+    const orderBarcode = order.barcode || `ORD-${orderId}-${Date.now()}`;
 
     return this.prisma.order.update({
       where: { id: orderId },
       data: {
-        barcode,
+        barcode: orderBarcode,
         sampleStatus: 'ACCEPTED',
         acceptedAt: new Date(),
         acceptedBy: userId,
@@ -277,7 +347,40 @@ export class OrdersService {
   }
 
   async findByBarcode(barcode: string) {
-    return this.prisma.order.findUnique({
+    // Önce OrderTest'te ara
+    const orderTest = await this.prisma.orderTest.findUnique({
+      where: { barcode },
+      include: {
+        order: {
+          include: {
+            patient: true,
+            acceptedByUser: true,
+          },
+        },
+        test: {
+          include: {
+            parameters: true,
+          },
+        },
+        parameters: {
+          include: {
+            testParameter: true,
+            enteredByUser: true,
+          },
+        },
+      },
+    });
+
+    if (orderTest) {
+      return {
+        type: 'orderTest',
+        orderTest,
+        order: orderTest.order,
+      };
+    }
+
+    // Eğer OrderTest'te bulunamazsa Order'da ara (geriye dönük uyumluluk için)
+    const order = await this.prisma.order.findUnique({
       where: { barcode },
       include: {
         tests: {
@@ -297,6 +400,40 @@ export class OrdersService {
         },
         patient: true,
         acceptedByUser: true,
+      },
+    });
+
+    if (order) {
+      return {
+        type: 'order',
+        order,
+      };
+    }
+
+    return null;
+  }
+
+  async findOrderTestByBarcode(barcode: string) {
+    return this.prisma.orderTest.findUnique({
+      where: { barcode },
+      include: {
+        order: {
+          include: {
+            patient: true,
+            acceptedByUser: true,
+          },
+        },
+        test: {
+          include: {
+            parameters: true,
+          },
+        },
+        parameters: {
+          include: {
+            testParameter: true,
+            enteredByUser: true,
+          },
+        },
       },
     });
   }

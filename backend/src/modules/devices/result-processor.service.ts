@@ -103,50 +103,85 @@ export class ResultProcessorService {
       return;
     }
 
-    // Barkod veya hasta ID ile order bul
+    // Barkod ile OrderTest veya Order bul
     let order = null;
+    let orderTest = null;
+    
     if (parsedResult.barcode) {
-      order = await this.prisma.order.findUnique({
+      // Önce OrderTest'te ara (her test için ayrı barkod)
+      orderTest = await this.prisma.orderTest.findUnique({
         where: { barcode: parsedResult.barcode },
         include: {
-          tests: {
+          order: {
             include: {
-              parameters: {
-                include: {
-                  testParameter: true,
-                },
-              },
+              patient: true,
+            },
+          },
+          test: true,
+          parameters: {
+            include: {
+              testParameter: true,
             },
           },
         },
       });
+
+      if (orderTest) {
+        order = orderTest.order;
+      } else {
+        // Eğer OrderTest'te bulunamazsa Order'da ara (geriye dönük uyumluluk)
+        order = await this.prisma.order.findUnique({
+          where: { barcode: parsedResult.barcode },
+          include: {
+            tests: {
+              include: {
+                parameters: {
+                  include: {
+                    testParameter: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
     }
 
     if (!order) {
       this.logger.warn(
-        `Barkod ile order bulunamadı: ${parsedResult.barcode || 'N/A'}`,
+        `Barkod ile order/orderTest bulunamadı: ${parsedResult.barcode || 'N/A'}`,
       );
       // Manuel inceleme için işaretle
       await this.prisma.deviceResultQueue.update({
         where: { id: queueId },
         data: {
           status: 'MANUAL_REVIEW',
-          errorMessage: 'Order bulunamadı - manuel eşleştirme gerekli',
+          errorMessage: 'Order/OrderTest bulunamadı - manuel eşleştirme gerekli',
         },
       });
       return;
     }
 
     // OrderTestParameter bul
-    const orderTestParameter = order.tests
-      .flatMap((ot) => ot.parameters || [])
-      .find(
+    let orderTestParameter = null;
+    
+    if (orderTest) {
+      // OrderTest'ten direkt parametre bul
+      orderTestParameter = orderTest.parameters.find(
         (otp) => otp.testParameterId === mapping.testParameterId,
       );
+    } else {
+      // Order'dan tüm testlerde ara
+      orderTestParameter = order.tests
+        .flatMap((ot) => ot.parameters || [])
+        .find(
+          (otp) => otp.testParameterId === mapping.testParameterId,
+        );
+    }
 
     if (!orderTestParameter) {
       this.logger.warn(
-        `Order ${order.id} için test parametresi bulunamadı: ${mapping.testParameterId}`,
+        `Order ${order.id}${orderTest ? `, OrderTest ${orderTest.id}` : ''} için test parametresi bulunamadı: ${mapping.testParameterId}`,
       );
       return;
     }
@@ -161,12 +196,14 @@ export class ResultProcessorService {
       },
     });
 
-    // Queue item'ı order ile ilişkilendir
+    // Queue item'ı order ve orderTest ile ilişkilendir
     await this.prisma.deviceResultQueue.update({
       where: { id: queueId },
       data: {
         orderId: order.id,
+        orderTestId: orderTest?.id || null,
         patientId: order.patientId,
+        barcode: parsedResult.barcode,
         testCode: parsedResult.testCode,
         result: parsedResult.result,
         unit: parsedResult.unit,

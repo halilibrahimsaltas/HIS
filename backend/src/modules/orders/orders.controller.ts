@@ -68,5 +68,11 @@ export class OrdersController {
   findByBarcode(@Param('barcode') barcode: string) {
     return this.ordersService.findByBarcode(barcode);
   }
+
+  @Get('order-test/barcode/:barcode')
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB)
+  findOrderTestByBarcode(@Param('barcode') barcode: string) {
+    return this.ordersService.findOrderTestByBarcode(barcode);
+  }
 }
 
