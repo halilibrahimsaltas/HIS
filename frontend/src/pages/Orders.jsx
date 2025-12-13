@@ -108,24 +108,42 @@ export default function Orders() {
                   {new Date(order.createdAt).toLocaleDateString('tr-TR')}
                 </TableCell>
                 <TableCell align="right">
-                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 0.5, 
+                    justifyContent: 'flex-end', 
+                    flexWrap: 'nowrap',
+                    alignItems: 'center',
+                  }}>
                     {/* Barkod yazdırma butonu - sadece barkod varsa göster */}
                     {order.tests.some((ot) => ot.barcode) && (
-                      <Button
+                      <IconButton
                         size="small"
-                        variant="outlined"
                         color="primary"
-                        startIcon={<PrintIcon />}
                         onClick={() => navigate(`/orders/${order.id}/barcodes`)}
                         title="Barkod Yazdır"
+                        sx={{ 
+                          border: '1px solid',
+                          borderColor: 'primary.main',
+                          '&:hover': {
+                            backgroundColor: 'primary.light',
+                            color: 'white',
+                          }
+                        }}
                       >
-                        Barkod
-                      </Button>
+                        <PrintIcon fontSize="small" />
+                      </IconButton>
                     )}
                     <Button
                       size="small"
                       variant="outlined"
                       onClick={() => navigate(`/results/${order.id}/preview`)}
+                      sx={{ 
+                        minWidth: 'auto',
+                        px: 1,
+                        fontSize: '0.75rem',
+                        py: 0.5,
+                      }}
                     >
                       Rapor
                     </Button>
@@ -135,8 +153,16 @@ export default function Orders() {
                         onClick={() => handleEdit(order)}
                         color="primary"
                         title="Düzenle"
+                        sx={{ 
+                          border: '1px solid',
+                          borderColor: 'primary.main',
+                          '&:hover': {
+                            backgroundColor: 'primary.light',
+                            color: 'white',
+                          }
+                        }}
                       >
-                        <EditIcon />
+                        <EditIcon fontSize="small" />
                       </IconButton>
                     )}
                     {(user?.role === 'ADMIN' || user?.role === 'LAB') && (
@@ -144,6 +170,12 @@ export default function Orders() {
                         size="small"
                         variant="outlined"
                         onClick={() => navigate(`/results/${order.id}`)}
+                        sx={{ 
+                          minWidth: 'auto',
+                          px: 1,
+                          fontSize: '0.75rem',
+                          py: 0.5,
+                        }}
                       >
                         Sonuç
                       </Button>

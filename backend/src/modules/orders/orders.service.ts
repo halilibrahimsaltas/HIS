@@ -6,8 +6,10 @@ import { CreateOrderDto } from './dto/create-order.dto';
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
 
+  // Artık generateBarcode kullanmıyoruz, sadece OrderTest ID kullanıyoruz
+  // Bu fonksiyon geriye dönük uyumluluk için acceptSample'da kullanılabilir
   private generateBarcode(orderId: number, testId: number, index: number): string {
-    // Format: OT-{orderId}-{testId}-{timestamp}-{index}
+    // Eski format - artık kullanılmıyor, sadece acceptSample'da fallback olarak
     const timestamp = Date.now().toString().slice(-8);
     return `OT-${orderId}-${testId}-${timestamp}-${index}`;
   }
@@ -37,19 +39,18 @@ export class OrdersService {
       },
     });
 
-    // OrderTest kayıtlarını oluştur ve barkod ata
+    // OrderTest kayıtlarını oluştur ve barkod olarak ID'yi ata
     const orderTests = await Promise.all(
       tests.map(async (testSelection, index) => {
         const test = testData.find((t) => t.id === testSelection.testId);
         const parameterIds = testSelection.parameterIds || 
           (test?.parameters ? test.parameters.map((p) => p.id) : []);
 
-        // Önce OrderTest'i oluştur
+        // Önce OrderTest'i oluştur (barkod olmadan)
         const orderTest = await this.prisma.orderTest.create({
           data: {
             orderId: order.id,
             testId: testSelection.testId,
-            barcode: this.generateBarcode(order.id, testSelection.testId, index),
             parameters: parameterIds.length > 0
               ? {
                   create: parameterIds.map((paramId) => ({
@@ -57,6 +58,14 @@ export class OrdersService {
                   })),
                 }
               : undefined,
+          },
+        });
+
+        // Oluşturulan ID'yi barkod olarak güncelle
+        const updatedOrderTest = await this.prisma.orderTest.update({
+          where: { id: orderTest.id },
+          data: {
+            barcode: orderTest.id.toString(),
           },
           include: {
             test: {
@@ -72,7 +81,7 @@ export class OrdersService {
           },
         });
 
-        return orderTest;
+        return updatedOrderTest;
       })
     );
 
@@ -209,18 +218,18 @@ export class OrdersService {
       },
     });
 
-    // OrderTest kayıtlarını oluştur ve barkod ata
+    // OrderTest kayıtlarını oluştur ve barkod olarak ID'yi ata
     await Promise.all(
       tests.map(async (testSelection, index) => {
         const test = testData.find((t) => t.id === testSelection.testId);
         const parameterIds = testSelection.parameterIds || 
           (test?.parameters ? test.parameters.map((p) => p.id) : []);
 
-        await this.prisma.orderTest.create({
+        // Önce OrderTest'i oluştur (barkod olmadan)
+        const orderTest = await this.prisma.orderTest.create({
           data: {
             orderId: id,
             testId: testSelection.testId,
-            barcode: this.generateBarcode(id, testSelection.testId, index),
             parameters: parameterIds.length > 0
               ? {
                   create: parameterIds.map((paramId) => ({
@@ -228,6 +237,14 @@ export class OrdersService {
                     })),
                   }
               : undefined,
+          },
+        });
+
+        // Oluşturulan ID'yi barkod olarak güncelle
+        await this.prisma.orderTest.update({
+          where: { id: orderTest.id },
+          data: {
+            barcode: orderTest.id.toString(),
           },
         });
       })
@@ -273,15 +290,15 @@ export class OrdersService {
       throw new Error('Order bulunamadı');
     }
 
-    // Eğer OrderTest'lerde barkod yoksa oluştur
+    // Eğer OrderTest'lerde barkod yoksa ID'yi barkod olarak ata
     const orderTestsWithoutBarcode = order.tests.filter((ot) => !ot.barcode);
     if (orderTestsWithoutBarcode.length > 0) {
       await Promise.all(
-        orderTestsWithoutBarcode.map(async (orderTest, index) => {
+        orderTestsWithoutBarcode.map(async (orderTest) => {
           await this.prisma.orderTest.update({
             where: { id: orderTest.id },
             data: {
-              barcode: this.generateBarcode(orderId, orderTest.testId, index),
+              barcode: orderTest.id.toString(),
             },
           });
         })

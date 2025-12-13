@@ -21,15 +21,15 @@ export default function BarcodeLabel({
     if (barcodeRef.current && barcode) {
       try {
         // Barkod boyutunu 102mm x 76mm formatına sığacak şekilde ayarla
-        // Alt alta düzen için daha geniş ama daha kısa barkod
+        // Sadece ID kullanıldığı için çok daha kısa barkod olacak
         JsBarcode(barcodeRef.current, barcode, {
           format: 'CODE128',
-          width: 2.5,
-          height: 35,
+          width: 3,
+          height: 30,
           displayValue: false,
           fontSize: 12,
-          textMargin: 3,
-          margin: 3,
+          textMargin: 2,
+          margin: 2,
         });
       } catch (error) {
         console.error('Barkod oluşturma hatası:', error);
