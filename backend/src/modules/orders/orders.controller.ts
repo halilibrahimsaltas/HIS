@@ -34,13 +34,13 @@ export class OrdersController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.RECEPTION)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB, Role.CHIEF_PHYSICIAN)
   findAll() {
     return this.ordersService.findAll();
   }
 
   @Get('patient/:patientId')
-  @Roles(Role.ADMIN, Role.RECEPTION)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB, Role.CHIEF_PHYSICIAN)
   findByPatient(@Param('patientId') patientId: string) {
     return this.ordersService.findByPatient(+patientId);
   }

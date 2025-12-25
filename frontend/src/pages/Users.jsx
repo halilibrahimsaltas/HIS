@@ -25,6 +25,8 @@ import {
   Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
@@ -39,6 +41,7 @@ export default function Users() {
   const [users, setUsers] = useState([]);
   const [branches, setBranches] = useState([]);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -71,19 +74,32 @@ export default function Users() {
     }
   };
 
-  const handleOpen = () => {
-    setFormData({
-      name: '',
-      email: '',
-      password: '',
-      role: '',
-      branchId: '',
-    });
+  const handleOpen = (userItem = null) => {
+    if (userItem) {
+      setEditing(userItem);
+      setFormData({
+        name: userItem.name,
+        email: userItem.email,
+        password: '',
+        role: userItem.role,
+        branchId: userItem.branchId ? userItem.branchId.toString() : '',
+      });
+    } else {
+      setEditing(null);
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        role: '',
+        branchId: '',
+      });
+    }
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
+    setEditing(null);
     setFormData({
       name: '',
       email: '',
@@ -96,15 +112,43 @@ export default function Users() {
   const handleSubmit = async () => {
     try {
       const payload = {
-        ...formData,
-        branchId: formData.branchId ? parseInt(formData.branchId) : undefined,
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        branchId: formData.branchId ? parseInt(formData.branchId) : null,
       };
-      await api.post('/users', payload);
-      alert('Kullanıcı başarıyla oluşturuldu');
+
+      // Only include password if it's provided (for updates) or if creating new user
+      if (!editing || formData.password) {
+        payload.password = formData.password;
+      }
+
+      if (editing) {
+        await api.patch(`/users/${editing.id}`, payload);
+        alert('Kullanıcı başarıyla güncellendi');
+      } else {
+        await api.post('/users', payload);
+        alert('Kullanıcı başarıyla oluşturuldu');
+      }
       fetchUsers();
       handleClose();
     } catch (error) {
-      console.error('Kullanıcı oluşturulamadı:', error);
+      console.error('Kullanıcı kaydedilemedi:', error);
+      alert('Hata: ' + (error.response?.data?.message || 'Bilinmeyen hata'));
+    }
+  };
+
+  const handleDelete = async (userId) => {
+    if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
+      return;
+    }
+
+    try {
+      await api.delete(`/users/${userId}`);
+      alert('Kullanıcı başarıyla silindi');
+      fetchUsers();
+    } catch (error) {
+      console.error('Kullanıcı silinemedi:', error);
       alert('Hata: ' + (error.response?.data?.message || 'Bilinmeyen hata'));
     }
   };
@@ -145,6 +189,7 @@ export default function Users() {
               <TableCell>Rol</TableCell>
               <TableCell>Şube</TableCell>
               <TableCell>Oluşturulma</TableCell>
+              <TableCell align="right">İşlemler</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -157,6 +202,14 @@ export default function Users() {
                 </TableCell>
                 <TableCell>{userItem.branch ? `${userItem.branch.name} (${userItem.branch.code})` : '-'}</TableCell>
                 <TableCell>{new Date(userItem.createdAt).toLocaleDateString('tr-TR')}</TableCell>
+                <TableCell align="right">
+                  <IconButton size="small" onClick={() => handleOpen(userItem)} color="primary">
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => handleDelete(userItem.id)} color="error">
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -164,7 +217,7 @@ export default function Users() {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Yeni Kullanıcı</DialogTitle>
+        <DialogTitle>{editing ? 'Kullanıcı Düzenle' : 'Yeni Kullanıcı'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
@@ -191,12 +244,13 @@ export default function Users() {
             <Grid item xs={12}>
               <TextField
                 margin="dense"
-                label="Şifre"
+                label={editing ? 'Şifre (Değiştirmek için doldurun)' : 'Şifre'}
                 fullWidth
-                required
+                required={!editing}
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                helperText={editing ? 'Şifreyi değiştirmek istemiyorsanız boş bırakın' : ''}
               />
             </Grid>
             <Grid item xs={12}>
@@ -251,12 +305,12 @@ export default function Users() {
             disabled={
               !formData.name ||
               !formData.email ||
-              !formData.password ||
+              (!editing && !formData.password) ||
               !formData.role ||
               (requiresBranch(formData.role) && !formData.branchId)
             }
           >
-            Oluştur
+            {editing ? 'Güncelle' : 'Oluştur'}
           </Button>
         </DialogActions>
       </Dialog>

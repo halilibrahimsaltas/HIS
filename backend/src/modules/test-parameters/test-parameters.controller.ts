@@ -37,7 +37,7 @@ export class TestParametersController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.RECEPTION)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB, Role.CHIEF_PHYSICIAN)
   findOne(@Param('id') id: string) {
     return this.testParametersService.findOne(+id);
   }
