@@ -1,4 +1,4 @@
-import { IsNumber, IsArray, ArrayMinSize, ValidateNested, IsOptional, IsString, Min, Max } from 'class-validator';
+import { IsNumber, IsArray, ArrayMinSize, ValidateNested, IsOptional, IsString, Min, Max, ValidateIf } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class TestSelectionDto {
@@ -22,14 +22,16 @@ export class CreateOrderDto {
   tests: TestSelectionDto[];
 
   @IsOptional()
+  @ValidateIf((o) => o.discountPercentage !== null && o.discountPercentage !== undefined)
   @IsNumber()
   @Min(0)
   @Max(100)
-  discountPercentage?: number;
+  discountPercentage?: number | null;
 
   @IsOptional()
+  @ValidateIf((o) => o.discountExplanation !== null && o.discountExplanation !== undefined)
   @IsString()
-  discountExplanation?: string;
+  discountExplanation?: string | null;
 
   @IsOptional()
   @IsNumber()

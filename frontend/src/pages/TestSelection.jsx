@@ -65,7 +65,7 @@ export default function TestSelection() {
   const [parameterDialogOpen, setParameterDialogOpen] = useState(false);
   const [currentTestForParams, setCurrentTestForParams] = useState(null);
   const [order, setOrder] = useState(null);
-  const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [discountPercentage, setDiscountPercentage] = useState('');
   const [discountExplanation, setDiscountExplanation] = useState('');
 
   useEffect(() => {
@@ -111,12 +111,8 @@ export default function TestSelection() {
       }));
       setSelectedTests(selections);
       // İndirim bilgilerini yükle
-      if (response.data.discountPercentage) {
-        setDiscountPercentage(response.data.discountPercentage);
-      }
-      if (response.data.discountExplanation) {
-        setDiscountExplanation(response.data.discountExplanation);
-      }
+      setDiscountPercentage(response.data.discountPercentage ? response.data.discountPercentage.toString() : '');
+      setDiscountExplanation(response.data.discountExplanation || '');
     } catch (error) {
       console.error('Test istemi yüklenemedi:', error);
     }
@@ -202,12 +198,13 @@ export default function TestSelection() {
 
       // Sadece ADMIN ve CHIEF_PHYSICIAN için indirim alanlarını ekle
       if (user?.role === 'ADMIN' || user?.role === 'CHIEF_PHYSICIAN') {
-        if (discountPercentage > 0) {
-          payload.discountPercentage = discountPercentage;
-        }
-        if (discountExplanation) {
-          payload.discountExplanation = discountExplanation;
-        }
+        // İndirim yüzdesini parse et ve kontrol et
+        const discountPercentValue = discountPercentage ? parseFloat(discountPercentage) : null;
+        payload.discountPercentage = (discountPercentValue !== null && !isNaN(discountPercentValue) && discountPercentValue > 0) 
+          ? discountPercentValue 
+          : null;
+        // Açıklama varsa gönder, yoksa null gönder
+        payload.discountExplanation = discountExplanation.trim() ? discountExplanation.trim() : null;
       }
 
       if (orderId) {
@@ -386,9 +383,9 @@ export default function TestSelection() {
                       type="number"
                       fullWidth
                       value={discountPercentage}
-                      onChange={(e) => setDiscountPercentage(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => setDiscountPercentage(e.target.value)}
                       inputProps={{ min: 0, max: 100, step: 0.1 }}
-                      helperText="0-100 arası değer giriniz"
+                      helperText="0-100 arası değer giriniz. İndirimi kaldırmak için boş bırakın."
                     />
                   </Grid>
                   <Grid item xs={12} sm={8}>

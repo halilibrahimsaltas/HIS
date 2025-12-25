@@ -25,6 +25,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import DevicesIcon from '@mui/icons-material/Devices';
 import BusinessIcon from '@mui/icons-material/Business';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../context/AuthContext';
 
@@ -40,6 +41,7 @@ const menuItems = [
   { text: 'Cihazlar', icon: <DevicesIcon />, path: '/devices', roles: ['ADMIN', 'LAB'] },
   { text: 'Şubeler', icon: <BusinessIcon />, path: '/branches', roles: ['ADMIN'] },
   { text: 'Kullanıcılar', icon: <PersonAddIcon />, path: '/users', roles: ['ADMIN'] },
+  { text: 'Raporlar', icon: <AssessmentIcon />, path: '/reports', roles: ['ADMIN', 'CHIEF_PHYSICIAN'] },
 ];
 
 export default function Layout() {

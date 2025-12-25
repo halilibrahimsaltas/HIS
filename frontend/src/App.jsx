@@ -18,6 +18,7 @@ import DeviceQueue from './pages/DeviceQueue';
 import BarcodePrint from './pages/BarcodePrint';
 import Branches from './pages/Branches';
 import Users from './pages/Users';
+import Reports from './pages/Reports';
 import Layout from './components/Layout';
 
 const theme = createTheme({
@@ -64,6 +65,7 @@ function App() {
               <Route path="devices/queue" element={<DeviceQueue />} />
               <Route path="branches" element={<Branches />} />
               <Route path="users" element={<Users />} />
+              <Route path="reports" element={<Reports />} />
               <Route path="orders/:orderId/barcodes" element={<BarcodePrint />} />
             </Route>
           </Routes>

@@ -10,6 +10,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { ResultsModule } from './modules/results/results.module';
 import { DevicesModule } from './modules/devices/devices.module';
 import { BranchesModule } from './modules/branches/branches.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { BranchesModule } from './modules/branches/branches.module';
     ResultsModule,
     DevicesModule,
     BranchesModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}
