@@ -1,4 +1,4 @@
-import { IsNumber, IsArray, ArrayMinSize, ValidateNested, IsOptional } from 'class-validator';
+import { IsNumber, IsArray, ArrayMinSize, ValidateNested, IsOptional, IsString, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class TestSelectionDto {
@@ -20,5 +20,19 @@ export class CreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => TestSelectionDto)
   tests: TestSelectionDto[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  discountPercentage?: number;
+
+  @IsOptional()
+  @IsString()
+  discountExplanation?: string;
+
+  @IsOptional()
+  @IsNumber()
+  branchId?: number;
 }
 

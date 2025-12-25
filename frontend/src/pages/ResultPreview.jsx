@@ -27,15 +27,13 @@ import api from '../api/axios';
 
 const RESULT_STATUS_COLORS = {
   PENDING: 'default',
-  ENTERED: 'info',
-  VERIFIED: 'success',
+  ENTERED: 'success',
   REJECTED: 'error',
 };
 
 const RESULT_STATUS_LABELS = {
   PENDING: 'Beklemede',
   ENTERED: 'Girildi',
-  VERIFIED: 'Doğrulandı',
   REJECTED: 'Reddedildi',
 };
 
@@ -141,7 +139,7 @@ export default function ResultPreview() {
           <Typography variant="h4">Sonuç Raporu</Typography>
         </Box>
         <Box>
-          {(user?.role === 'ADMIN' || user?.role === 'LAB') && (
+          {(user?.role === 'ADMIN' || user?.role === 'CHIEF_PHYSICIAN') && (
             <Button
               variant="outlined"
               startIcon={<EditIcon />}

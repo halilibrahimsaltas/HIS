@@ -71,29 +71,6 @@ export class ResultsService {
     });
   }
 
-  async verifyResult(orderTestParameterId: number, userId: number) {
-    return this.prisma.orderTestParameter.update({
-      where: { id: orderTestParameterId },
-      data: {
-        status: 'VERIFIED',
-        enteredBy: userId,
-      },
-      include: {
-        testParameter: true,
-        orderTest: {
-          include: {
-            test: true,
-            order: {
-              include: {
-                patient: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
   async getOrderResults(orderId: number) {
     return this.prisma.order.findUnique({
       where: { id: orderId },

@@ -7,20 +7,40 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Branch {
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      String   @unique
+  address   String?
+  phone     String?
+  email     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  orders    Order[]
+
+  @@index([code])
+}
+
 model User {
-  id                Int       @id @default(autoincrement())
-  name              String
-  email             String    @unique
-  password          String
-  role              Role
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  acceptedOrders    Order[]
-  enteredResults    OrderTestParameter[]
+  id             Int                  @id @default(autoincrement())
+  name           String
+  email          String               @unique
+  password       String
+  role           Role
+  branchId       Int?
+  branch         Branch?              @relation(fields: [branchId], references: [id])
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  acceptedOrders Order[]
+  enteredResults OrderTestParameter[]
+
+  @@index([branchId])
 }
 
 model Patient {
-  id             Int                @id @default(autoincrement())
+  id             Int                 @id @default(autoincrement())
   firstName      String
   lastName       String
   fatherName     String
@@ -31,65 +51,65 @@ model Patient {
   gender         String?
   identityNumber String?
   passportNumber String?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
   orders         Order[]
   deviceResults  DeviceResultQueue[]
 }
 
 model Test {
-  id          Int              @id @default(autoincrement())
-  code        String           @unique
-  name        String
-  category    TestCategory
-  price       Float
-  sampleType  String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  orderTests  OrderTest[]
-  parameters  TestParameter[]
+  id         Int             @id @default(autoincrement())
+  code       String          @unique
+  name       String
+  category   TestCategory
+  price      Float
+  sampleType String
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  orderTests OrderTest[]
+  parameters TestParameter[]
 }
 
 model TestParameter {
-  id                Int                        @id @default(autoincrement())
-  code              String                     @unique
-  name              String
-  unit              String?
-  referenceRange    String?                    // Genel referans aralığı (geriye dönük uyumluluk için)
-  createdAt         DateTime                   @default(now())
-  updatedAt         DateTime                   @updatedAt
-  tests             Test[]
+  id                  Int                       @id @default(autoincrement())
+  code                String                    @unique
+  name                String
+  unit                String?
+  referenceRange      String? // Genel referans aralığı (geriye dönük uyumluluk için)
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  tests               Test[]
   orderTestParameters OrderTestParameter[]
-  referenceRanges   ParameterReferenceRange[]
-  deviceMappings    DeviceTestMapping[]
+  referenceRanges     ParameterReferenceRange[]
+  deviceMappings      DeviceTestMapping[]
 }
 
 model ParameterReferenceRange {
-  id              Int            @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   testParameterId Int
   ageGroup        AgeGroup
   gender          Gender
-  rangeText       String?         // Metin formatında aralık (örn: "70-100", "<200", "Negatif")
-  minValue        Float?          // Minimum sayısal değer
-  maxValue        Float?          // Maksimum sayısal değer
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  testParameter   TestParameter   @relation(fields: [testParameterId], references: [id], onDelete: Cascade)
+  rangeText       String? // Metin formatında aralık (örn: "70-100", "<200", "Negatif")
+  minValue        Float? // Minimum sayısal değer
+  maxValue        Float? // Maksimum sayısal değer
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  testParameter   TestParameter @relation(fields: [testParameterId], references: [id], onDelete: Cascade)
 
   @@unique([testParameterId, ageGroup, gender])
   @@index([testParameterId])
 }
 
 enum AgeGroup {
-  CHILD      // 0-18 yaş
-  ADULT      // 18-65 yaş
-  ELDERLY    // 65+ yaş
+  CHILD // 0-18 yaş
+  ADULT // 18-65 yaş
+  ELDERLY // 65+ yaş
 }
 
 enum Gender {
   MALE
   FEMALE
-  BOTH       // Her iki cinsiyet için de aynı
+  BOTH // Her iki cinsiyet için de aynı
 }
 
 enum TestCategory {
@@ -112,19 +132,25 @@ enum TestCategory {
 }
 
 model Order {
-  id           Int                @id @default(autoincrement())
-  patientId    Int
-  tests        OrderTest[]
-  total        Float
-  barcode      String?            @unique
-  sampleStatus SampleStatus       @default(PENDING)
-  acceptedAt   DateTime?
-  acceptedBy   Int?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  patient      Patient            @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  acceptedByUser User?            @relation(fields: [acceptedBy], references: [id])
-  deviceResults DeviceResultQueue[]
+  id                  Int                 @id @default(autoincrement())
+  patientId           Int
+  branchId            Int?
+  branch              Branch?             @relation(fields: [branchId], references: [id])
+  tests               OrderTest[]
+  total               Float
+  discountPercentage  Float?
+  discountExplanation String?
+  barcode             String?             @unique
+  sampleStatus        SampleStatus        @default(PENDING)
+  acceptedAt          DateTime?
+  acceptedBy          Int?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  patient             Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  acceptedByUser      User?               @relation(fields: [acceptedBy], references: [id])
+  deviceResults       DeviceResultQueue[]
+
+  @@index([branchId])
 }
 
 enum SampleStatus {
@@ -136,27 +162,27 @@ enum SampleStatus {
 }
 
 model OrderTest {
-  id         Int                  @id @default(autoincrement())
-  orderId    Int
-  testId     Int
-  barcode    String?              @unique
-  order      Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  test       Test                 @relation(fields: [testId], references: [id], onDelete: Cascade)
-  parameters OrderTestParameter[]
+  id            Int                  @id @default(autoincrement())
+  orderId       Int
+  testId        Int
+  barcode       String?              @unique
+  order         Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  test          Test                 @relation(fields: [testId], references: [id], onDelete: Cascade)
+  parameters    OrderTestParameter[]
   deviceResults DeviceResultQueue[]
 }
 
 model OrderTestParameter {
-  id              Int          @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   orderTestId     Int
   testParameterId Int
   result          String?
-  status          ResultStatus @default(PENDING)
+  status          ResultStatus  @default(PENDING)
   enteredAt       DateTime?
   enteredBy       Int?
-  orderTest       OrderTest    @relation(fields: [orderTestId], references: [id], onDelete: Cascade)
+  orderTest       OrderTest     @relation(fields: [orderTestId], references: [id], onDelete: Cascade)
   testParameter   TestParameter @relation(fields: [testParameterId], references: [id], onDelete: Cascade)
-  enteredByUser   User?        @relation(fields: [enteredBy], references: [id])
+  enteredByUser   User?         @relation(fields: [enteredBy], references: [id])
 
   @@unique([orderTestId, testParameterId])
 }
@@ -164,7 +190,6 @@ model OrderTestParameter {
 enum ResultStatus {
   PENDING
   ENTERED
-  VERIFIED
   REJECTED
 }
 
@@ -172,26 +197,27 @@ enum Role {
   ADMIN
   RECEPTION
   LAB
+  CHIEF_PHYSICIAN
 }
 
 model Device {
-  id            Int                @id @default(autoincrement())
-  name          String
-  manufacturer  String              // Örn: "Roche", "Siemens"
-  model         String              // Örn: "Cobas 6000", "Cobas 8000"
-  serialNumber  String?             @unique
-  protocol      DeviceProtocol      @default(ASTM)
-  connectionType ConnectionType     @default(TCP_IP)
-  host          String?             // TCP/IP için IP adresi
-  port          Int?                // TCP/IP için port
-  serialPort    String?             // Serial port için port adı (COM1, /dev/ttyUSB0)
-  baudRate      Int?                // Serial port için baud rate
-  isActive      Boolean             @default(false)
-  lastConnected DateTime?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  results       DeviceResultQueue[]
-  mappings      DeviceTestMapping[]
+  id             Int                 @id @default(autoincrement())
+  name           String
+  manufacturer   String // Örn: "Roche", "Siemens"
+  model          String // Örn: "Cobas 6000", "Cobas 8000"
+  serialNumber   String?             @unique
+  protocol       DeviceProtocol      @default(ASTM)
+  connectionType ConnectionType      @default(TCP_IP)
+  host           String? // TCP/IP için IP adresi
+  port           Int? // TCP/IP için port
+  serialPort     String? // Serial port için port adı (COM1, /dev/ttyUSB0)
+  baudRate       Int? // Serial port için baud rate
+  isActive       Boolean             @default(false)
+  lastConnected  DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  results        DeviceResultQueue[]
+  mappings       DeviceTestMapping[]
 }
 
 enum DeviceProtocol {
@@ -207,11 +233,11 @@ enum ConnectionType {
 }
 
 model DeviceTestMapping {
-  id              Int      @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   deviceId        Int
-  deviceTestCode  String   // Cihazın kullandığı test kodu
-  testParameterId Int      // LIMS'deki test parametresi
-  device          Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  deviceTestCode  String // Cihazın kullandığı test kodu
+  testParameterId Int // LIMS'deki test parametresi
+  device          Device        @relation(fields: [deviceId], references: [id], onDelete: Cascade)
   testParameter   TestParameter @relation(fields: [testParameterId], references: [id], onDelete: Cascade)
 
   @@unique([deviceId, deviceTestCode])
@@ -220,26 +246,26 @@ model DeviceTestMapping {
 }
 
 model DeviceResultQueue {
-  id              Int              @id @default(autoincrement())
-  deviceId        Int
-  rawMessage      String           // Ham cihaz mesajı
-  parsedData      Json?            // Parse edilmiş veri
-  patientId       Int?             // Eğer hasta eşleştirilebildiyse
-  orderId         Int?             // Eğer order eşleştirilebildiyse
-  orderTestId     Int?             // Eğer orderTest eşleştirilebildiyse
-  barcode         String?          // Barkod numarası
-  testCode        String?          // Cihaz test kodu (parse edildikten sonra doldurulur)
-  result          String?          // Sonuç değeri
-  unit            String?          // Birim
-  status          QueueStatus      @default(PENDING)
-  errorMessage    String?          // Hata mesajı
-  processedAt     DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  device          Device           @relation(fields: [deviceId], references: [id], onDelete: Cascade)
-  patient         Patient?         @relation(fields: [patientId], references: [id])
-  order           Order?           @relation(fields: [orderId], references: [id])
-  orderTest       OrderTest?       @relation(fields: [orderTestId], references: [id])
+  id           Int         @id @default(autoincrement())
+  deviceId     Int
+  rawMessage   String // Ham cihaz mesajı
+  parsedData   Json? // Parse edilmiş veri
+  patientId    Int? // Eğer hasta eşleştirilebildiyse
+  orderId      Int? // Eğer order eşleştirilebildiyse
+  orderTestId  Int? // Eğer orderTest eşleştirilebildiyse
+  barcode      String? // Barkod numarası
+  testCode     String? // Cihaz test kodu (parse edildikten sonra doldurulur)
+  result       String? // Sonuç değeri
+  unit         String? // Birim
+  status       QueueStatus @default(PENDING)
+  errorMessage String? // Hata mesajı
+  processedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  device       Device      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  patient      Patient?    @relation(fields: [patientId], references: [id])
+  order        Order?      @relation(fields: [orderId], references: [id])
+  orderTest    OrderTest?  @relation(fields: [orderTestId], references: [id])
 
   @@index([deviceId])
   @@index([status])
@@ -249,10 +275,9 @@ model DeviceResultQueue {
 }
 
 enum QueueStatus {
-  PENDING       // İşlenmeyi bekliyor
-  PROCESSING    // İşleniyor
-  PROCESSED     // İşlendi ve sonuç yazıldı
-  ERROR         // Hata oluştu
+  PENDING // İşlenmeyi bekliyor
+  PROCESSING // İşleniyor
+  PROCESSED // İşlendi ve sonuç yazıldı
+  ERROR // Hata oluştu
   MANUAL_REVIEW // Manuel inceleme gerekiyor
 }
-

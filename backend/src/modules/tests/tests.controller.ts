@@ -28,13 +28,13 @@ export class TestsController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.RECEPTION)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB, Role.CHIEF_PHYSICIAN)
   findAll() {
     return this.testsService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.RECEPTION)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB, Role.CHIEF_PHYSICIAN)
   findOne(@Param('id') id: string) {
     return this.testsService.findOne(+id);
   }
@@ -52,7 +52,7 @@ export class TestsController {
   }
 
   @Get('parameters/all')
-  @Roles(Role.ADMIN, Role.RECEPTION)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB, Role.CHIEF_PHYSICIAN)
   findAllParameters() {
     return this.testsService.findAllParameters();
   }

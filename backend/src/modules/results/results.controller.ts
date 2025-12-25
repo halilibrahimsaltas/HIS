@@ -22,7 +22,7 @@ export class ResultsController {
   constructor(private readonly resultsService: ResultsService) {}
 
   @Patch('parameter/:id')
-  @Roles(Role.ADMIN, Role.LAB)
+  @Roles(Role.ADMIN, Role.CHIEF_PHYSICIAN)
   updateResult(
     @Param('id') id: string,
     @Body() updateResultDto: UpdateResultDto,
@@ -32,7 +32,7 @@ export class ResultsController {
   }
 
   @Post('order/:orderId')
-  @Roles(Role.ADMIN, Role.LAB)
+  @Roles(Role.ADMIN, Role.CHIEF_PHYSICIAN)
   updateMultipleResults(
     @Param('orderId') orderId: string,
     @Body() updateMultipleResultsDto: UpdateMultipleResultsDto,
@@ -45,14 +45,8 @@ export class ResultsController {
     );
   }
 
-  @Patch('parameter/:id/verify')
-  @Roles(Role.ADMIN, Role.LAB)
-  verifyResult(@Param('id') id: string, @Request() req) {
-    return this.resultsService.verifyResult(+id, req.user.userId);
-  }
-
   @Get('order/:orderId')
-  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB)
+  @Roles(Role.ADMIN, Role.RECEPTION, Role.LAB, Role.CHIEF_PHYSICIAN)
   getOrderResults(@Param('orderId') orderId: string) {
     return this.resultsService.getOrderResults(+orderId);
   }

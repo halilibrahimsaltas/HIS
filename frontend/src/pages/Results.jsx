@@ -22,21 +22,18 @@ import {
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
 const RESULT_STATUS_COLORS = {
   PENDING: 'default',
-  ENTERED: 'info',
-  VERIFIED: 'success',
+  ENTERED: 'success',
   REJECTED: 'error',
 };
 
 const RESULT_STATUS_LABELS = {
   PENDING: 'Beklemede',
   ENTERED: 'Girildi',
-  VERIFIED: 'Doğrulandı',
   REJECTED: 'Reddedildi',
 };
 
@@ -141,16 +138,6 @@ export default function Results() {
     }
   };
 
-  const handleVerify = async (parameterId) => {
-    try {
-      await api.patch(`/results/parameter/${parameterId}/verify`);
-      alert('Sonuç doğrulandı');
-      fetchOrder();
-    } catch (error) {
-      console.error('Sonuç doğrulanamadı:', error);
-      alert('Hata: ' + (error.response?.data?.message || 'Bilinmeyen hata'));
-    }
-  };
 
   if (loading) {
     return <Container>Yükleniyor...</Container>;
@@ -173,13 +160,15 @@ export default function Results() {
           >
             İptal
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<SaveIcon />}
-            onClick={handleSave}
-          >
-            Kaydet
-          </Button>
+          {(user?.role === 'ADMIN' || user?.role === 'CHIEF_PHYSICIAN') && (
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={handleSave}
+            >
+              Kaydet
+            </Button>
+          )}
         </Box>
       </Box>
 
@@ -269,7 +258,6 @@ export default function Results() {
                         <TableCell>Referans Aralık</TableCell>
                         <TableCell>Sonuç</TableCell>
                         <TableCell>Durum</TableCell>
-                        <TableCell align="right">İşlem</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -315,6 +303,7 @@ export default function Results() {
                               onChange={(e) => handleResultChange(param.id, e.target.value)}
                               placeholder="Sonuç giriniz"
                               sx={{ minWidth: 150 }}
+                              disabled={user?.role !== 'ADMIN' && user?.role !== 'CHIEF_PHYSICIAN'}
                             />
                           </TableCell>
                           <TableCell>
@@ -323,18 +312,6 @@ export default function Results() {
                               size="small"
                               color={RESULT_STATUS_COLORS[param.status]}
                             />
-                          </TableCell>
-                          <TableCell align="right">
-                            {param.status === 'ENTERED' && (
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                startIcon={<CheckCircleIcon />}
-                                onClick={() => handleVerify(param.id)}
-                              >
-                                Doğrula
-                              </Button>
-                            )}
                           </TableCell>
                         </TableRow>
                       ))}

@@ -23,14 +23,14 @@ export class OrdersController {
 
   @Post()
   @Roles(Role.ADMIN, Role.RECEPTION)
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  create(@Body() createOrderDto: CreateOrderDto, @Request() req) {
+    return this.ordersService.create(createOrderDto, req.user.userId);
   }
 
   @Put(':id')
   @Roles(Role.ADMIN, Role.RECEPTION)
-  update(@Param('id') id: string, @Body() updateOrderDto: CreateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
+  update(@Param('id') id: string, @Body() updateOrderDto: CreateOrderDto, @Request() req) {
+    return this.ordersService.update(+id, updateOrderDto, req.user.userId);
   }
 
   @Get()

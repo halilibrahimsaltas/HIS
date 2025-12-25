@@ -9,6 +9,7 @@ import { TestParametersModule } from './modules/test-parameters/test-parameters.
 import { OrdersModule } from './modules/orders/orders.module';
 import { ResultsModule } from './modules/results/results.module';
 import { DevicesModule } from './modules/devices/devices.module';
+import { BranchesModule } from './modules/branches/branches.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { DevicesModule } from './modules/devices/devices.module';
     OrdersModule,
     ResultsModule,
     DevicesModule,
+    BranchesModule,
   ],
 })
 export class AppModule {}

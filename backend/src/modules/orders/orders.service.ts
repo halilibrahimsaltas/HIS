@@ -14,8 +14,18 @@ export class OrdersService {
     return `OT-${orderId}-${testId}-${timestamp}-${index}`;
   }
 
-  async create(createOrderDto: CreateOrderDto) {
-    const { patientId, tests } = createOrderDto;
+  async create(createOrderDto: CreateOrderDto, userId?: number) {
+    const { patientId, tests, discountPercentage, discountExplanation, branchId } = createOrderDto;
+
+    // Eğer branchId verilmemişse, kullanıcının branchId'sini al
+    let finalBranchId = branchId;
+    if (!finalBranchId && userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { branchId: true },
+      });
+      finalBranchId = user?.branchId || null;
+    }
 
     // Test fiyatlarını al
     const testIds = tests.map((t) => t.testId);
@@ -29,13 +39,21 @@ export class OrdersService {
     });
 
     // Toplam fiyatı hesapla
-    const total = testData.reduce((sum, test) => sum + test.price, 0);
+    let total = testData.reduce((sum, test) => sum + test.price, 0);
+
+    // İndirim uygula
+    if (discountPercentage && discountPercentage > 0) {
+      total = total * (1 - discountPercentage / 100);
+    }
 
     // Order oluştur
     const order = await this.prisma.order.create({
       data: {
         patientId,
+        branchId: finalBranchId,
         total,
+        discountPercentage,
+        discountExplanation,
       },
     });
 
@@ -126,6 +144,7 @@ export class OrdersService {
           },
         },
         patient: true,
+        branch: true,
         acceptedByUser: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -175,13 +194,24 @@ export class OrdersService {
           },
         },
         patient: true,
+        branch: true,
         acceptedByUser: true,
       },
     });
   }
 
-  async update(id: number, updateOrderDto: CreateOrderDto) {
-    const { patientId, tests } = updateOrderDto;
+  async update(id: number, updateOrderDto: CreateOrderDto, userId?: number) {
+    const { patientId, tests, discountPercentage, discountExplanation, branchId } = updateOrderDto;
+
+    // Eğer branchId verilmemişse, kullanıcının branchId'sini al
+    let finalBranchId = branchId;
+    if (!finalBranchId && userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { branchId: true },
+      });
+      finalBranchId = user?.branchId || null;
+    }
 
     // Önce mevcut order testlerini ve parametrelerini sil
     await this.prisma.orderTestParameter.deleteMany({
@@ -207,14 +237,22 @@ export class OrdersService {
     });
 
     // Toplam fiyatı hesapla
-    const total = testData.reduce((sum, test) => sum + test.price, 0);
+    let total = testData.reduce((sum, test) => sum + test.price, 0);
+
+    // İndirim uygula
+    if (discountPercentage && discountPercentage > 0) {
+      total = total * (1 - discountPercentage / 100);
+    }
 
     // Order'ı güncelle
     await this.prisma.order.update({
       where: { id },
       data: {
         patientId,
+        branchId: finalBranchId,
         total,
+        discountPercentage,
+        discountExplanation,
       },
     });
 

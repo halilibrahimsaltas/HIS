@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -64,6 +65,8 @@ export default function TestSelection() {
   const [parameterDialogOpen, setParameterDialogOpen] = useState(false);
   const [currentTestForParams, setCurrentTestForParams] = useState(null);
   const [order, setOrder] = useState(null);
+  const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [discountExplanation, setDiscountExplanation] = useState('');
 
   useEffect(() => {
     if (patientId) {
@@ -107,6 +110,13 @@ export default function TestSelection() {
         parameterIds: ot.parameters.map((p) => p.testParameterId),
       }));
       setSelectedTests(selections);
+      // İndirim bilgilerini yükle
+      if (response.data.discountPercentage) {
+        setDiscountPercentage(response.data.discountPercentage);
+      }
+      if (response.data.discountExplanation) {
+        setDiscountExplanation(response.data.discountExplanation);
+      }
     } catch (error) {
       console.error('Test istemi yüklenemedi:', error);
     }
@@ -189,6 +199,16 @@ export default function TestSelection() {
         patientId: parseInt(patientId),
         tests: selectedTests,
       };
+
+      // Sadece ADMIN ve CHIEF_PHYSICIAN için indirim alanlarını ekle
+      if (user?.role === 'ADMIN' || user?.role === 'CHIEF_PHYSICIAN') {
+        if (discountPercentage > 0) {
+          payload.discountPercentage = discountPercentage;
+        }
+        if (discountExplanation) {
+          payload.discountExplanation = discountExplanation;
+        }
+      }
 
       if (orderId) {
         await api.put(`/orders/${orderId}`, payload);
@@ -352,6 +372,37 @@ export default function TestSelection() {
                 </Button>
               </Box>
             </Box>
+
+            {/* İndirim Alanları - Sadece ADMIN ve CHIEF_PHYSICIAN için */}
+            {(user?.role === 'ADMIN' || user?.role === 'CHIEF_PHYSICIAN') && (
+              <Box sx={{ mb: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+                <Typography variant="h6" gutterBottom>
+                  İndirim Bilgileri
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      label="İndirim Yüzdesi (%)"
+                      type="number"
+                      fullWidth
+                      value={discountPercentage}
+                      onChange={(e) => setDiscountPercentage(parseFloat(e.target.value) || 0)}
+                      inputProps={{ min: 0, max: 100, step: 0.1 }}
+                      helperText="0-100 arası değer giriniz"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={8}>
+                    <TextField
+                      label="İndirim Açıklaması"
+                      fullWidth
+                      value={discountExplanation}
+                      onChange={(e) => setDiscountExplanation(e.target.value)}
+                      placeholder="İndirim nedenini açıklayınız"
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
 
             {/* Kategori Sekmeleri */}
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>

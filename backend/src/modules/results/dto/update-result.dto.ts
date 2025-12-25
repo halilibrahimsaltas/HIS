@@ -7,7 +7,7 @@ export class UpdateResultDto {
   result?: string;
 
   @IsOptional()
-  @IsEnum(['PENDING', 'ENTERED', 'VERIFIED', 'REJECTED'])
+  @IsEnum(['PENDING', 'ENTERED', 'REJECTED'])
   status?: ResultStatus;
 }
 
