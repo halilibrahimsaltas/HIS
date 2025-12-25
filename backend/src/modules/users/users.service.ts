@@ -113,6 +113,11 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    // Validate id parameter
+    if (!id || isNaN(id)) {
+      throw new NotFoundException('Geçersiz kullanıcı ID');
+    }
+
     // Check if user exists
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -200,6 +205,7 @@ export class UsersService {
         _count: {
           select: {
             acceptedOrders: true,
+            createdOrders: true,
             enteredResults: true,
           },
         },
@@ -211,7 +217,7 @@ export class UsersService {
     }
 
     // Check if user has any related data
-    if (user._count.acceptedOrders > 0 || user._count.enteredResults > 0) {
+    if (user._count.acceptedOrders > 0 || user._count.createdOrders > 0 || user._count.enteredResults > 0) {
       throw new ConflictException(
         'Bu kullanıcıya bağlı siparişler veya sonuçlar var. Kullanıcı silinemez.',
       );

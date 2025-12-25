@@ -75,7 +75,7 @@ export default function Users() {
   };
 
   const handleOpen = (userItem = null) => {
-    if (userItem) {
+    if (userItem && userItem.id) {
       setEditing(userItem);
       setFormData({
         name: userItem.name,
@@ -119,15 +119,15 @@ export default function Users() {
       };
 
       // Only include password if it's provided (for updates) or if creating new user
-      if (!editing || formData.password) {
+      if (!(editing && editing.id) || formData.password) {
         payload.password = formData.password;
       }
 
-      if (editing) {
+      if (editing && editing.id) {
         await api.patch(`/users/${editing.id}`, payload);
         alert('Kullanıcı başarıyla güncellendi');
       } else {
-        await api.post('/users', payload);
+        await api.put('/users', payload);
         alert('Kullanıcı başarıyla oluşturuldu');
       }
       fetchUsers();
@@ -217,7 +217,7 @@ export default function Users() {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{editing ? 'Kullanıcı Düzenle' : 'Yeni Kullanıcı'}</DialogTitle>
+        <DialogTitle>{editing && editing.id ? 'Kullanıcı Düzenle' : 'Yeni Kullanıcı'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
@@ -244,13 +244,13 @@ export default function Users() {
             <Grid item xs={12}>
               <TextField
                 margin="dense"
-                label={editing ? 'Şifre (Değiştirmek için doldurun)' : 'Şifre'}
+                label={editing && editing.id ? 'Şifre (Değiştirmek için doldurun)' : 'Şifre'}
                 fullWidth
-                required={!editing}
+                required={!(editing && editing.id)}
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                helperText={editing ? 'Şifreyi değiştirmek istemiyorsanız boş bırakın' : ''}
+                helperText={editing && editing.id ? 'Şifreyi değiştirmek istemiyorsanız boş bırakın' : ''}
               />
             </Grid>
             <Grid item xs={12}>
@@ -305,12 +305,12 @@ export default function Users() {
             disabled={
               !formData.name ||
               !formData.email ||
-              (!editing && !formData.password) ||
+              (!(editing && editing.id) && !formData.password) ||
               !formData.role ||
               (requiresBranch(formData.role) && !formData.branchId)
             }
           >
-            {editing ? 'Güncelle' : 'Oluştur'}
+            {editing && editing.id ? 'Güncelle' : 'Oluştur'}
           </Button>
         </DialogActions>
       </Dialog>
