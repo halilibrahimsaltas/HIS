@@ -71,6 +71,7 @@ export default function Orders() {
               <TableCell>Testler</TableCell>
               <TableCell>Toplam</TableCell>
               <TableCell>Tarih</TableCell>
+              <TableCell>Oluşturan</TableCell>
               <TableCell align="right">İşlemler</TableCell>
             </TableRow>
           </TableHead>
@@ -106,6 +107,26 @@ export default function Orders() {
                 <TableCell>{order.total.toFixed(2)} ₺</TableCell>
                 <TableCell>
                   {new Date(order.createdAt).toLocaleDateString('tr-TR')}
+                </TableCell>
+                <TableCell>
+                  {order.createdByUser ? (
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium">
+                        {order.createdByUser.name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {order.createdByUser.role === 'ADMIN' ? 'Admin' :
+                         order.createdByUser.role === 'RECEPTION' ? 'Kasiyer/Resepsiyon' :
+                         order.createdByUser.role === 'LAB' ? 'Laborant' :
+                         order.createdByUser.role === 'CHIEF_PHYSICIAN' ? 'Baş Hekim' :
+                         order.createdByUser.role}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      -
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell align="right">
                   <Box sx={{ 

@@ -54,6 +54,7 @@ export class OrdersService {
         total,
         discountPercentage,
         discountExplanation,
+        createdBy: userId || null,
       },
     });
 
@@ -122,6 +123,23 @@ export class OrdersService {
           },
         },
         patient: true,
+        branch: true,
+        createdByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+        acceptedByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
       },
     });
   }
@@ -145,7 +163,22 @@ export class OrdersService {
         },
         patient: true,
         branch: true,
-        acceptedByUser: true,
+        createdByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+        acceptedByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -167,6 +200,24 @@ export class OrdersService {
                 testParameter: true,
               },
             },
+          },
+        },
+        patient: true,
+        branch: true,
+        createdByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+        acceptedByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
           },
         },
       },
@@ -195,7 +246,22 @@ export class OrdersService {
         },
         patient: true,
         branch: true,
-        acceptedByUser: true,
+        createdByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+        acceptedByUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
       },
     });
   }
@@ -409,7 +475,23 @@ export class OrdersService {
         order: {
           include: {
             patient: true,
-            acceptedByUser: true,
+            branch: true,
+            createdByUser: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+              },
+            },
+            acceptedByUser: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+              },
+            },
           },
         },
         test: {
@@ -475,7 +557,23 @@ export class OrdersService {
         order: {
           include: {
             patient: true,
-            acceptedByUser: true,
+            branch: true,
+            createdByUser: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+              },
+            },
+            acceptedByUser: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+              },
+            },
           },
         },
         test: {

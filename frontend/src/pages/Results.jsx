@@ -223,6 +223,23 @@ export default function Results() {
                 </Typography>
               </Box>
             )}
+            {order.createdByUser && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Oluşturan Personel
+                </Typography>
+                <Typography variant="body1" fontWeight="medium">
+                  {order.createdByUser.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {order.createdByUser.role === 'ADMIN' ? 'Admin' :
+                   order.createdByUser.role === 'RECEPTION' ? 'Kasiyer/Resepsiyon' :
+                   order.createdByUser.role === 'LAB' ? 'Laborant' :
+                   order.createdByUser.role === 'CHIEF_PHYSICIAN' ? 'Baş Hekim' :
+                   order.createdByUser.role}
+                </Typography>
+              </Box>
+            )}
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Durum
